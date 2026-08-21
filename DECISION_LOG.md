@@ -29,3 +29,22 @@ This prevents data fragmentation and ensures the 4-engine ecosystem (C6 + Uberni
 - Master Orchestrator Agent (coordinates all agents)
 
 The self-expanding intelligence layer is now live.
+
+## 2026-08-21 – C6 Three-System Economic Sprint
+
+**Decision:** Keep the sprint strictly scoped to the C6 Group website, Ubernie and RemotePay. The next delivery path is:
+
+**business discovery → evidence/provenance → offer/package → C6 checkout → RemotePay payment → outcome tracking.**
+
+**Rationale:** The scoped audit shows the three systems already contain meaningful pieces of this path. The highest-leverage move is to connect the existing capabilities and harden the missing trust/offer/payment boundaries instead of creating another platform.
+
+**Execution order:**
+1. Close the C6 production-integrity gate and verify the AI audit path.
+2. Harden Ubernie real-business discovery and evidence provenance.
+3. Build the authoritative C6 offer/package contract with approved commercial pricing.
+4. Bridge the validated offer into C6 checkout and RemotePay payment state.
+5. Add outcome tracking and only then implement learning/self-correction.
+
+**Current gate:** C6 website PR #1 remains unmerged until build/tests are verified. No synthetic audit fallback is acceptable.
+
+**Tracking:** See `SPRINT_TODO.md` for the live execution checklist.
