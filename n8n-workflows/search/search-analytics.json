@@ -1,0 +1,10 @@
+{
+  "name": "Ubernie Search Analytics",
+  "nodes": [
+    {"parameters":{"rule":{"interval":[{"field":"cronExpression","expression":"0 8 * * *"}]}},"id":"schedule","name":"Daily 8am","type":"n8n-nodes-base.scheduleTrigger","typeVersion":1,"position":[250,300]},
+    {"parameters":{"operation":"executeQuery","query":"SELECT search_term, COUNT(*) AS count FROM search_logs WHERE created_at > NOW() - INTERVAL '24 hours' GROUP BY search_term ORDER BY count DESC LIMIT 20" },"id":"get","name":"Top Searches","type":"n8n-nodes-base.postgres","typeVersion":2,"position":[450,300]},
+    {"parameters":{"method":"POST","url":"http://orchestrator:7000/run","sendBody":true,"bodyParameters":{"parameters":{"agent":"business_audit","input":"Analyse these search trends and suggest 3 new business categories to add","context":"{{ JSON.stringify($json) }}"}}},"id":"orch","name":"Analyse","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[650,300]},
+    {"parameters":{"fromEmail":"analytics@ubernie.co.za","toEmail":"{{$env.ADMIN_EMAIL}}","subject":"Ubernie Daily Search Analytics","text":"{{ $json.response }}"},"id":"email","name":"Email Report","type":"n8n-nodes-base.emailSend","typeVersion":2,"position":[850,300]}
+  ],
+  "connections":{"Daily 8am":{"main":[[{"node":"Top Searches","type":"main","index":0}]]},"Top Searches":{"main":[[{"node":"Analyse","type":"main","index":0}]]},"Analyse":{"main":[[{"node":"Email Report","type":"main","index":0}]]}}
+}

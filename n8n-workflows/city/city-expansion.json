@@ -1,0 +1,10 @@
+{
+  "name": "Ubernie City Expansion",
+  "nodes": [
+    {"parameters":{"rule":{"interval":[{"field":"days","daysInterval":7}]}},"id":"schedule","name":"Weekly","type":"n8n-nodes-base.scheduleTrigger","typeVersion":1,"position":[250,300]},
+    {"parameters":{"operation":"executeQuery","query":"SELECT city, COUNT(*) AS search_count FROM search_logs WHERE created_at > NOW() - INTERVAL '30 days' GROUP BY city HAVING COUNT(*) > 100 AND city NOT IN (SELECT name FROM cities) ORDER BY search_count DESC LIMIT 3" },"id":"find","name":"Find Hot Cities","type":"n8n-nodes-base.postgres","typeVersion":2,"position":[450,300]},
+    {"parameters":{"method":"POST","url":"http://orchestrator:7000/run","sendBody":true,"bodyParameters":{"parameters":{"agent":"content_writer","input":"Write a city landing page for this new city","context":"City: {{ $json.city }}. Population and business data will be added later."}}},"id":"orch","name":"Generate City Page","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[650,300]},
+    {"parameters":{"operation":"executeQuery","query":"INSERT INTO cities (name, description, launched_at) VALUES ('{{$("Find Hot Cities").item.json.city}}', '{{$json.response}}', NOW())" },"id":"insert","name":"Create City","type":"n8n-nodes-base.postgres","typeVersion":2,"position":[850,300]}
+  ],
+  "connections":{"Weekly":{"main":[[{"node":"Find Hot Cities","type":"main","index":0}]]},"Find Hot Cities":{"main":[[{"node":"Generate City Page","type":"main","index":0}]]},"Generate City Page":{"main":[[{"node":"Create City","type":"main","index":0}]]}}
+}

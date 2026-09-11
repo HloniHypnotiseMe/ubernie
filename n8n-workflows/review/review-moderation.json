@@ -1,0 +1,10 @@
+{
+  "name": "Ubernie Review Moderation",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"ubernie-review","responseMode":"lastNode"},"id":"webhook","name":"New Review","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[250,300]},
+    {"parameters":{"method":"POST","url":"http://orchestrator:7000/run","sendBody":true,"bodyParameters":{"parameters":{"agent":"support_agent","input":"Moderate this review. Flag if spam, abusive, or fake. Rate 1-10 on authenticity.","context":"Review: {{ $json.body.review_text }}. Business: {{ $json.body.business_name }}"}}},"id":"orch","name":"Moderate","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[450,300]},
+    {"parameters":{"operation":"executeQuery","query":"INSERT INTO reviews (business_id, customer_name, review_text, moderation_result, status, created_at) VALUES ('{{$("New Review").item.json.body.business_id}}', '{{$("New Review").item.json.body.customer_name}}', '{{$("New Review").item.json.body.review_text}}', '{{ $json.response }}', 'pending', NOW())" },"id":"store","name":"Store Review","type":"n8n-nodes-base.postgres","typeVersion":2,"position":[650,300]},
+    {"parameters":{"respondWith":"json","responseBody":"={\"status\":\"moderated\",\"result\":\"{{ $("Moderate").item.json.response }}\"}"},"id":"res","name":"Respond","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[850,300]}
+  ],
+  "connections":{"New Review":{"main":[[{"node":"Moderate","type":"main","index":0}]]},"Moderate":{"main":[[{"node":"Store Review","type":"main","index":0}]]},"Store Review":{"main":[[{"node":"Respond","type":"main","index":0}]]}}
+}

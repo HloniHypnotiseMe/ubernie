@@ -1,0 +1,11 @@
+{
+  "name": "Ubernie Tier Upgrade",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"ubernie-upgrade","responseMode":"lastNode"},"id":"webhook","name":"Upgrade Request","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[250,300]},
+    {"parameters":{"method":"POST","url":"http://remotepay-api:8000/api/payment-links","sendBody":true,"bodyParameters":{"parameters":{"amount":"={{ $json.body.tier_price }}","description":"Ubernie {{ $json.body.tier_name }} upgrade","customer_email":"={{ $json.body.email }}"}}},"id":"payment","name":"Create Payment Link","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[450,300]},
+    {"parameters":{"operation":"executeQuery","query":"UPDATE businesses SET subscription_tier = '{{$("Upgrade Request").item.json.body.tier_name}}' WHERE id = '{{$("Upgrade Request").item.json.body.business_id}}'" },"id":"update","name":"Update Tier","type":"n8n-nodes-base.postgres","typeVersion":2,"position":[650,300]},
+    {"parameters":{"fromEmail":"billing@ubernie.co.za","toEmail":"={{ $("Upgrade Request").item.json.body.email }}","subject":"Your Ubernie {{ $("Upgrade Request").item.json.body.tier_name }} upgrade","text":"Hi,\n\nComplete your upgrade here: {{ $json.link_url }}\n\nThanks for growing with Ubernie."},"id":"email","name":"Send Link","type":"n8n-nodes-base.emailSend","typeVersion":2,"position":[850,300]},
+    {"parameters":{"respondWith":"json","responseBody":"={\"status\":\"pending_payment\",\"link\":\"{{ $("Create Payment Link").item.json.link_url }}\"}"},"id":"res","name":"Respond","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[1050,300]}
+  ],
+  "connections":{"Upgrade Request":{"main":[[{"node":"Create Payment Link","type":"main","index":0}]]},"Create Payment Link":{"main":[[{"node":"Update Tier","type":"main","index":0}]]},"Update Tier":{"main":[[{"node":"Send Link","type":"main","index":0}]]},"Send Link":{"main":[[{"node":"Respond","type":"main","index":0}]]}}
+}

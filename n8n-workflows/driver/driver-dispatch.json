@@ -1,0 +1,11 @@
+{
+  "name": "Ubernie Driver Dispatch",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"ubernie-dispatch","responseMode":"lastNode"},"id":"webhook","name":"Delivery Request","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[250,300]},
+    {"parameters":{"operation":"executeQuery","query":"SELECT * FROM drivers WHERE status = 'available' AND city_id = '{{$json.body.city_id}}' ORDER BY rating DESC LIMIT 3" },"id":"find","name":"Find Drivers","type":"n8n-nodes-base.postgres","typeVersion":2,"position":[450,300]},
+    {"parameters":{"method":"POST","url":"http://orchestrator:7000/run","sendBody":true,"bodyParameters":{"parameters":{"agent":"voice_receptionist","input":"Pick the best driver for this delivery based on proximity and rating","context":"Delivery: {{ $json.body.pickup }} to {{ $json.body.dropoff }}. Available drivers: {{ JSON.stringify($json) }}"}}},"id":"orch","name":"AI Match","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[650,300]},
+    {"parameters":{"method":"POST","url":"https://api.whatsapp.com/send","sendBody":true,"bodyParameters":{"parameters":{"to":"={{ $json.driver_phone }}","message":"New delivery assignment: {{ $("Delivery Request").item.json.body.pickup }} → {{ $("Delivery Request").item.json.body.dropoff }}"}}},"id":"notify","name":"Notify Driver","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[850,300]},
+    {"parameters":{"respondWith":"json","responseBody":"={\"status\":\"dispatched\",\"driver_id\":\"{{ $json.driver_id }}\"}"},"id":"res","name":"Respond","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[1050,300]}
+  ],
+  "connections":{"Delivery Request":{"main":[[{"node":"Find Drivers","type":"main","index":0}]]},"Find Drivers":{"main":[[{"node":"AI Match","type":"main","index":0}]]},"AI Match":{"main":[[{"node":"Notify Driver","type":"main","index":0}]]},"Notify Driver":{"main":[[{"node":"Respond","type":"main","index":0}]]}}
+}
