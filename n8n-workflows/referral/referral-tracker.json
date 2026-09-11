@@ -1,0 +1,10 @@
+{
+  "name": "Ubernie Referral Tracker",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"ubernie-referral","responseMode":"lastNode"},"id":"webhook","name":"Referral Event","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[250,300]},
+    {"parameters":{"operation":"executeQuery","query":"INSERT INTO referrals (referrer_id, referred_id, event_type, created_at) VALUES ('{{$json.body.referrer_id}}', '{{$json.body.referred_id}}', '{{$json.body.event_type}}', NOW()) RETURNING id" },"id":"store","name":"Store Referral","type":"n8n-nodes-base.postgres","typeVersion":2,"position":[450,300]},
+    {"parameters":{"method":"POST","url":"http://ubernie-api:8000/api/affiliate/payout","sendBody":true,"bodyParameters":{"parameters":{"referral_id":"={{ $json.id }}","amount":"={{ $json.body.amount }}"}}},"id":"payout","name":"Trigger Payout","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[650,300]},
+    {"parameters":{"respondWith":"json","responseBody":"={\"status\":\"tracked\"}"},"id":"res","name":"Respond","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[850,300]}
+  ],
+  "connections":{"Referral Event":{"main":[[{"node":"Store Referral","type":"main","index":0}]]},"Store Referral":{"main":[[{"node":"Trigger Payout","type":"main","index":0}]]},"Trigger Payout":{"main":[[{"node":"Respond","type":"main","index":0}]]}}
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Ubernie RemotePay Activation",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"ubernie-activate-remotepay","responseMode":"lastNode"},"id":"webhook","name":"Activation Request","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[250,300]},
+    {"parameters":{"method":"POST","url":"http://ubernie-api:8000/api/agent/activate-remotepay","sendBody":true,"bodyParameters":{"parameters":{"business_id":"={{ $json.body.business_id }}"}}},"id":"activate","name":"Call Activation Agent","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[450,300]},
+    {"parameters":{"method":"POST","url":"http://remotepay-api:8000/api/merchants/onboard","sendBody":true,"bodyParameters":{"parameters":{"business_id":"={{ $json.body.business_id }}","email":"={{ $json.body.email }}","source":"ubernie"}}},"id":"onboard","name":"Create RemotePay Merchant","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[650,300]},
+    {"parameters":{"respondWith":"json","responseBody":"={\"status\":\"activated\"}"},"id":"res","name":"Respond","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[850,300]}
+  ],
+  "connections":{"Activation Request":{"main":[[{"node":"Call Activation Agent","type":"main","index":0}]]},"Call Activation Agent":{"main":[[{"node":"Create RemotePay Merchant","type":"main","index":0}]]},"Create RemotePay Merchant":{"main":[[{"node":"Respond","type":"main","index":0}]]}}
+}

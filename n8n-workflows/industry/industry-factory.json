@@ -1,0 +1,9 @@
+{
+  "name": "Ubernie Industry Factory",
+  "nodes": [
+    {"parameters":{"rule":{"interval":[{"field":"hours","hoursInterval":6}]}},"id":"schedule","name":"Every 6 Hours","type":"n8n-nodes-base.scheduleTrigger","typeVersion":1,"position":[250,300]},
+    {"parameters":{"operation":"executeQuery","query":"SELECT * FROM search_demands WHERE industry_created = false AND search_count > 50 LIMIT 5" },"id":"get","name":"Get High-Demand","type":"n8n-nodes-base.postgres","typeVersion":2,"position":[450,300]},
+    {"parameters":{"method":"POST","url":"http://ubernie-api:8000/api/agent/create-industry","sendBody":true,"bodyParameters":{"parameters":{"demand_id":"={{ $json.id }}","search_term":"={{ $json.search_term }}"}}},"id":"create","name":"Call Industry Factory","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[650,300]}
+  ],
+  "connections":{"Every 6 Hours":{"main":[[{"node":"Get High-Demand","type":"main","index":0}]]},"Get High-Demand":{"main":[[{"node":"Call Industry Factory","type":"main","index":0}]]}}
+}

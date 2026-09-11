@@ -1,0 +1,10 @@
+{
+  "name": "Ubernie Listing Optimizer",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"ubernie-optimize","responseMode":"lastNode"},"id":"webhook","name":"Optimize Request","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[250,300]},
+    {"parameters":{"method":"POST","url":"http://ubernie-api:8000/api/agent/audit-business","sendBody":true,"bodyParameters":{"parameters":{"business_id":"={{ $json.body.business_id }}"}}},"id":"audit","name":"Call Ubernie Agent","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[450,300]},
+    {"parameters":{"method":"POST","url":"http://orchestrator:7000/run","sendBody":true,"bodyParameters":{"parameters":{"agent":"content_writer","input":"Write an optimized listing description for this business","context":"{{ JSON.stringify($json) }}"}}},"id":"orch","name":"Generate Content","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[650,300]},
+    {"parameters":{"respondWith":"json","responseBody":"={\"optimized\":\"{{ $json.response }}\"}"},"id":"res","name":"Respond","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[850,300]}
+  ],
+  "connections":{"Optimize Request":{"main":[[{"node":"Call Ubernie Agent","type":"main","index":0}]]},"Call Ubernie Agent":{"main":[[{"node":"Generate Content","type":"main","index":0}]]},"Generate Content":{"main":[[{"node":"Respond","type":"main","index":0}]]}}
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Ubernie Listing Sync from C6",
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"ubernie-new-business","responseMode":"lastNode"},"id":"webhook","name":"New Business","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[250,300]},
+    {"parameters":{"method":"POST","url":"http://ubernie-api:8000/api/businesses","sendBody":true,"bodyParameters":{"parameters":{"name":"={{ $json.body.business_name }}","email":"={{ $json.body.email }}","industry":"={{ $json.body.industry }}","website":"={{ $json.body.website }}","listing_tier":"starter","created_via":"c6_audit"}}},"id":"create","name":"Create Ubernie Listing","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[450,300]},
+    {"parameters":{"respondWith":"json","responseBody":"={\"status\":\"created\",\"listing_id\":\"{{ $json.id }}\"}"},"id":"res","name":"Respond","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[650,300]}
+  ],
+  "connections":{"New Business":{"main":[[{"node":"Create Ubernie Listing","type":"main","index":0}]]},"Create Ubernie Listing":{"main":[[{"node":"Respond","type":"main","index":0}]]}}
+}
