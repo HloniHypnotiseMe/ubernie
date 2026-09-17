@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# Local env
+.env
+.env.local
+
+# Local data (test data, tax ledger, generated sites)
+data/
+*.jsonl
+
+# Generated sites (never commit — they're per-shop artifacts)
+generated-sites/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
