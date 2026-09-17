@@ -27,7 +27,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-from integration import waitlist
+from integration import waitlist, rider_dispatch
 from integration.remotepay_client import RemotePayClient, RemotePayError
 from integration.ubernie_delivery import UbernieDeliveryClient
 from integration.taxai_hook import calculate_vat, record_transaction
@@ -251,13 +251,62 @@ async def confirm_order(req: ConfirmOrderRequest):
     order["tax_entry"] = tax_entry
     order["confirmed_at"] = datetime.now(timezone.utc).isoformat()
 
+    # ---- Dispatch a rider if delivery was requested and zone is active ----
+    dispatch_result: Dict[str, Any] = {"dispatched": False}
+    delivery_area = (order.get("delivery") or {}).get("area")
+    if delivery_area:
+        match = rider_dispatch.find_best_rider(delivery_area)
+        if match:
+            assignment = rider_dispatch.assign(
+                order_id=req.order_id,
+                rider_id=match["rider"]["id"],
+                area=delivery_area,
+            )
+            order["status"] = "dispatched"
+            order["rider"] = match["rider"]
+            order["assignment"] = assignment
+            dispatch_result = {
+                "dispatched": True,
+                "rider": match["rider"],
+                "score": match["score"],
+                "distance_km": match["distance_km"],
+                "alternatives": match["alternatives"],
+            }
+        else:
+            order["status"] = "confirmed_pending_dispatch"
+            dispatch_result = {
+                "dispatched": False,
+                "reason": "no_available_rider",
+                "message": "Order confirmed. No rider currently available; will retry.",
+            }
+
     return {
-        "status": "confirmed",
+        "status": order["status"],
         "order_id": req.order_id,
         "vat_minor": vat_minor,
         "vat_display": f"R{vat_minor / 100:.2f}",
         "tax_record": tax_entry,
+        "dispatch": dispatch_result,
     }
+
+
+@app.get("/api/riders/zone/{area}")
+async def get_riders_in_zone(area: str):
+    return {
+        "area": area,
+        "zone_active": waitlist.is_zone_active(area),
+        "riders": rider_dispatch.list_riders_in_zone(area),
+    }
+
+
+@app.post("/api/riders/{rider_id}/complete")
+async def complete_delivery(rider_id: str, order_id: str):
+    record = rider_dispatch.release(rider_id=rider_id, order_id=order_id, reason="completed")
+    order = _ORDERS.get(order_id)
+    if order:
+        order["status"] = "delivered"
+        order["delivered_at"] = record["at"]
+    return {"status": "completed", "release": record}
 
 
 @app.get("/api/orders/{order_id}")

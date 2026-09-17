@@ -95,3 +95,36 @@ The self-expanding intelligence layer is now live.
 - Pure data change; zero code change required for activation.
 
 **Related:** commits a33ff4a, 23cc74c, 27f854b
+
+---
+
+## 2026-09-17 – Rider Dispatch Engine
+
+**Decision:** Build rider dispatch reading from the waitlist's active-zone riders.
+
+**Rationale:**
+- Completes the flywheel: order → payment → tax → **rider assigned** → delivered.
+- Riders are sourced from the waitlist (single source of truth), not fabricated.
+- Dispatch is gated by zone activation: cannot assign a rider in an inactive zone.
+
+**Architecture:**
+- `integration/rider_dispatch.py` — scoring engine (distance/rating/load/acceptance).
+- Riders registered via waitlist are implicitly AVAILABLE.
+- Availability state (available/busy) lives in `data/rider_state.jsonl` (append-only).
+- `find_best_rider()` returns top + 2 alternatives for auditability.
+
+**Load balancing:**
+- Scoring penalizes riders with active jobs (-5 per job).
+- 3 riders + 3 orders → all 3 get distinct assignments (verified by test).
+
+**Completion flow:**
+- `POST /api/riders/{id}/complete?order_id=X` frees the rider.
+- Freed rider is immediately eligible for new orders.
+
+**Success criteria (met):**
+- Order confirmed → best rider auto-assigned.
+- Second concurrent order → different rider (load balancing works).
+- Completed delivery → rider returns to AVAILABLE.
+- All driven by data (waitlist + rider_state), zero hardcoded zones.
+
+**Related:** commits a33ff4a, 23cc74c, 27f854b, [this commit]
