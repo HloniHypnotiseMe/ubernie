@@ -23,11 +23,14 @@ from typing import Any, Dict, List
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 load_dotenv()
 
 from integration import waitlist, rider_dispatch
+from builder.site_generator import SiteGenerator
+from builder.site_renderer import SiteRenderer
 from integration.remotepay_client import RemotePayClient, RemotePayError
 from integration.ubernie_delivery import UbernieDeliveryClient
 from integration.taxai_hook import calculate_vat, record_transaction
@@ -36,6 +39,12 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("web-department.api")
 
 app = FastAPI(title="C6 Web Department", version="0.2.0")
+
+import os as _os_mount
+_SITES_DIR = _os_mount.getenv("GENERATED_SITES_DIR", "generated-sites")
+_os_mount.makedirs(_SITES_DIR, exist_ok=True)
+
+app.mount("/sites", StaticFiles(directory=_SITES_DIR, html=True), name="sites")
 
 app.add_middleware(
     CORSMiddleware,
@@ -96,6 +105,19 @@ class CreatePaymentRequest(BaseModel):
 class ConfirmOrderRequest(BaseModel):
     order_id: str
     payment_id: str
+
+
+class GenerateSiteRequest(BaseModel):
+    business_name: str = Field(min_length=1)
+    industry: str = Field(default="retail")
+    address: str = Field(default="")
+    phone: str = ""
+    email: str = ""
+    tagline: str = ""
+    story: str = ""
+    menu_items: List[Dict[str, Any]] = []
+    products: List[Dict[str, Any]] = []
+    services: List[Dict[str, Any]] = []
 
 
 # ---------------------------------------------------------------------------
@@ -315,6 +337,55 @@ async def get_order(order_id: str):
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
+
+
+# ---------------------------------------------------------------------------
+# Site generation (per-shop storefront)
+# ---------------------------------------------------------------------------
+import os as _os
+
+@app.post("/api/sites/{shop_id}/generate")
+async def generate_site(shop_id: str, req: GenerateSiteRequest):
+    """Generate a static storefront for a shop and return a preview URL."""
+    base_dir = _os.getenv("GENERATED_SITES_DIR", "generated-sites")
+    output_dir = f"{base_dir}/{shop_id}"
+
+    shop_data = {
+        "id": shop_id,
+        "name": req.business_name,
+        "industry": req.industry,
+        "address": req.address,
+        "phone": req.phone,
+        "email": req.email,
+        "tagline": req.tagline or f"Welcome to {req.business_name}",
+        "story": req.story,
+        "menu_items": req.menu_items,
+        "products": req.products,
+        "services": req.services,
+        "remotepay_merchant_id": f"merchant_{shop_id}",
+        "ubernie_shop_id": shop_id,
+    }
+
+    import traceback
+    try:
+        config = SiteGenerator(shop_data).generate()
+        renderer = SiteRenderer(config, output_dir)
+        result = renderer.render()
+    except Exception as e:
+        tb = traceback.format_exc()
+        print("=== SITE GENERATION FAILED ===")
+        print(tb)
+        print("=== END TRACEBACK ===")
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
+
+    # Serve statically at /sites/{shop_id}/index.html
+    return {
+        "shop_id": shop_id,
+        "status": "generated",
+        "output_dir": result["rendered_to"],
+        "api_base_url": result.get("api_base_url"),
+        "preview_url": f"/sites/{shop_id}/index.html",
+    }
 
 
 if __name__ == "__main__":

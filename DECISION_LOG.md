@@ -128,3 +128,62 @@ The self-expanding intelligence layer is now live.
 - All driven by data (waitlist + rider_state), zero hardcoded zones.
 
 **Related:** commits a33ff4a, 23cc74c, 27f854b, [this commit]
+
+---
+
+## 2026-09-17 – SimplyBlu is the Official Payment Provider
+
+**Decision:** SimplyBlu (via `/api/v1/payment-links`) is the official RemotePay
+payment path. PayFast and PayGate are deferred to a later phase as secondary
+providers only.
+
+**Rationale:**
+- `payment-links` supports idempotency, multi-tenancy, and the persistent ledger.
+- PayFast (`/api/v1/payments`) is legacy in-memory — not suitable for production.
+- The web-department RemotePayClient already targets `payment-links` as primary.
+
+**Impact on web-department:**
+- Mock fallback stays only for local dev until SimplyBlu creds are set.
+- No code change required — client auto-upgrades to real SimplyBlu when env ready.
+- Future PayFast/PayGate integration goes through a provider-adapter layer (deferred).
+
+**Config needed (when ready):**
+- `SIMPLYBLU_API_URL`, `SIMPLYBLU_PUBLIC_KEY`, `SIMPLYBLU_PRIVATE_KEY` in RemotePay `.env`
+- `DATABASE_URL` (MongoDB) in RemotePay `.env`
+- `PAYMENT_PROVIDER=simplyblu`
+
+**Related:** DEC-2026-09-17-001 (integration before deployment)
+
+---
+
+## 2026-09-17 – Generated Sites Call the Web Department API
+
+**Decision:** Wire generated shop sites to call the web-department API for
+delivery checks, payment creation, and order confirmation.
+
+**Context:** All 6 flywheel layers worked (verified end-to-end via curl), but
+generated sites pointed at relative paths (`/api/remotepay/create-payment`) that
+resolve to nothing on a deployed subdomain. Machinery without a client is
+unproven in practice.
+
+**Changes:**
+- `builder/site_renderer.py` injects `WEB_DEPARTMENT_PUBLIC_URL` into every page
+  as `window.C6_CONFIG.apiBaseUrl`.
+- New `assets/c6-api.js` — a minimal client used by all generated pages
+  (`checkDelivery`, `createPayment`, `confirmOrder`).
+- Updated `cart.js` — checkout button now calls the API and handles the response.
+- New endpoint `POST /api/sites/{shop_id}/generate` — generate a storefront via API.
+- Static mount at `/sites/{shop_id}/` — preview generated sites from the API.
+
+**Not yet done (deferred):**
+- Product grid population from real product data (currently no products rendered).
+- Thank-you page after confirm (currently shows inline status).
+- Real payment redirect flow (currently mock-completes after 400ms).
+
+**Success criteria:**
+- Generated site loads in browser.
+- Cart works.
+- Delivery check returns real waitlist status.
+- Clicking "Pay" hits the API, creates an order, confirms it, dispatches a rider.
+
+**Related:** commits a33ff4a, 23cc74c, 27f854b, 625ca63
