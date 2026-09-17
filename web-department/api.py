@@ -4,14 +4,18 @@ Web Department — API
 
 Endpoints the generated shop sites call:
   GET  /health
+  GET  /api/waitlist/zones
+  GET  /api/waitlist/zone/{area}
+  POST /api/waitlist/shop
+  POST /api/waitlist/rider
   POST /api/remotepay/create-payment
   GET  /api/delivery/check?area=X
   POST /api/orders/confirm
+  GET  /api/orders/{order_id}
 """
 from __future__ import annotations
 
 import logging
-import os
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List
@@ -23,6 +27,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
+from integration import waitlist
 from integration.remotepay_client import RemotePayClient, RemotePayError
 from integration.ubernie_delivery import UbernieDeliveryClient
 from integration.taxai_hook import calculate_vat, record_transaction
@@ -30,7 +35,7 @@ from integration.taxai_hook import calculate_vat, record_transaction
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("web-department.api")
 
-app = FastAPI(title="C6 Web Department", version="0.1.0")
+app = FastAPI(title="C6 Web Department", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,17 +48,37 @@ app.add_middleware(
 remotepay = RemotePayClient()
 delivery = UbernieDeliveryClient()
 
-# In-memory order store (upgrade to Mongo later)
 _ORDERS: Dict[str, Dict[str, Any]] = {}
 
 
 # ---------------------------------------------------------------------------
-# Schemas
+# Schemas — Waitlist
+# ---------------------------------------------------------------------------
+class ShopWaitlistRequest(BaseModel):
+    business_name: str = Field(min_length=1)
+    area: str = Field(min_length=1)
+    industry: str = Field(min_length=1)
+    email: str = Field(min_length=3)
+    phone: str = Field(min_length=5)
+    estimated_daily_orders: int = 0
+
+
+class RiderWaitlistRequest(BaseModel):
+    full_name: str = Field(min_length=1)
+    area: str = Field(min_length=1)
+    vehicle: str = Field(default="Zeebee Greenscooter")
+    phone: str = Field(min_length=5)
+    email: str = Field(min_length=3)
+    licence_number: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Schemas — Orders
 # ---------------------------------------------------------------------------
 class CartItem(BaseModel):
     id: str
     name: str
-    price: float  # in Rands
+    price: float
     qty: int = Field(ge=1)
 
 
@@ -74,7 +99,7 @@ class ConfirmOrderRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Routes
+# Health
 # ---------------------------------------------------------------------------
 @app.get("/health")
 async def health():
@@ -87,16 +112,68 @@ async def health():
     }
 
 
+# ---------------------------------------------------------------------------
+# Waitlist endpoints
+# ---------------------------------------------------------------------------
+@app.post("/api/waitlist/shop")
+async def join_waitlist_shop(req: ShopWaitlistRequest):
+    result = waitlist.register_shop(
+        business_name=req.business_name,
+        area=req.area,
+        industry=req.industry,
+        email=req.email,
+        phone=req.phone,
+        estimated_daily_orders=req.estimated_daily_orders,
+    )
+    status = waitlist.zone_status(req.area)
+    return {"registration": result, "zone": status}
+
+
+@app.post("/api/waitlist/rider")
+async def join_waitlist_rider(req: RiderWaitlistRequest):
+    result = waitlist.register_rider(
+        full_name=req.full_name,
+        area=req.area,
+        vehicle=req.vehicle,
+        phone=req.phone,
+        email=req.email,
+        licence_number=req.licence_number,
+    )
+    status = waitlist.zone_status(req.area)
+    return {"registration": result, "zone": status}
+
+
+@app.get("/api/waitlist/zone/{area}")
+async def get_zone(area: str):
+    return waitlist.zone_status(area)
+
+
+@app.get("/api/waitlist/zones")
+async def get_all_zones():
+    return {"zones": waitlist.list_zones()}
+
+
+# ---------------------------------------------------------------------------
+# Delivery (now waitlist-driven)
+# ---------------------------------------------------------------------------
+@app.get("/api/delivery/check")
+async def check_delivery(area: str):
+    if not area:
+        raise HTTPException(status_code=400, detail="area is required")
+    return delivery.check_area(area)
+
+
+# ---------------------------------------------------------------------------
+# Orders / payments
+# ---------------------------------------------------------------------------
 @app.post("/api/remotepay/create-payment")
 async def create_payment(req: CreatePaymentRequest):
     if not req.items:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
-    # Compute total in cents
     total_rands = sum(i.price * i.qty for i in req.items)
     total_minor = int(round(total_rands * 100))
 
-    # Optional delivery fee
     delivery_result: Dict[str, Any] | None = None
     if req.delivery_area:
         delivery_result = delivery.check_area(req.delivery_area)
@@ -127,7 +204,6 @@ async def create_payment(req: CreatePaymentRequest):
     except RemotePayError as exc:
         raise HTTPException(status_code=502, detail=f"Payment creation failed: {exc}") from exc
 
-    # Store order
     _ORDERS[order_id] = {
         "order_id": order_id,
         "shop_id": req.shop_id,
@@ -151,13 +227,6 @@ async def create_payment(req: CreatePaymentRequest):
     }
 
 
-@app.get("/api/delivery/check")
-async def check_delivery(area: str):
-    if not area:
-        raise HTTPException(status_code=400, detail="area is required")
-    return delivery.check_area(area)
-
-
 @app.post("/api/orders/confirm")
 async def confirm_order(req: ConfirmOrderRequest):
     order = _ORDERS.get(req.order_id)
@@ -167,7 +236,6 @@ async def confirm_order(req: ConfirmOrderRequest):
     if order["status"] == "confirmed":
         return {"status": "already_confirmed", "order_id": req.order_id}
 
-    # Record tax
     vat_minor = calculate_vat(order["total_minor"])
     tax_entry = record_transaction(
         order_id=req.order_id,
@@ -183,7 +251,6 @@ async def confirm_order(req: ConfirmOrderRequest):
     order["tax_entry"] = tax_entry
     order["confirmed_at"] = datetime.now(timezone.utc).isoformat()
 
-    # TODO: dispatch rider via Ubernie delivery engine
     return {
         "status": "confirmed",
         "order_id": req.order_id,

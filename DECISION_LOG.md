@@ -29,3 +29,69 @@ This prevents data fragmentation and ensures the 4-engine ecosystem (C6 + Uberni
 - Master Orchestrator Agent (coordinates all agents)
 
 The self-expanding intelligence layer is now live.
+---
+
+## 2026-09-17 – Web Department: Integration Layer Before Deployment
+
+**Decision:** Build the integration layer (RemotePay, Ubernie Delivery, Tax AI) before the deployment layer.
+
+**Rationale:**
+- Deployment is cheap and reversible; revenue path is the critical path.
+- Must prove ONE shop end-to-end (real payment, real delivery, real tax record) before scaling to 100+ shops.
+- Deploying mock sites would burn merchant credibility on first contact.
+- Integration requirements (env vars, endpoints, secrets) define deployment requirements, not the other way around.
+
+**Alternatives considered:**
+- (A) Deploy first — rejected: ships broken UX.
+- (B) Integrate first — CHOSEN.
+- (C) Parallel — rejected: splits focus, risk of half-built layers.
+
+**Integration target refinement (sub-decision):**
+- Integrate with `/api/v1/payment-links` (SimplyBlu + ledger) as primary, NOT `/api/v1/payments` (PayFast legacy).
+- Reason: `payment-links` has idempotency, multi-tenancy (merchant_id/brand_id/source_system), and persistent ledger — required for the Ubernie flywheel and Tax AI consumption.
+
+**Resilience decision (sub-decision):**
+- RemotePay client uses a 3-tier fallback: payment-links → payments (legacy) → mock.
+- `REMOTEPAY_MODE` env var controls behavior: auto | live | legacy | mock.
+- Justification: unblocks web-department development while RemotePay's SimplyBlu + MongoDB are being configured. Auto-upgrades when RemotePay is ready. Mock is clearly logged and never used in production.
+
+**Dependencies:**
+- RemotePay backend running with DATABASE_URL (MongoDB) + SimplyBlu creds for full functionality.
+- Currently: not running, so we test via mock path — REAL integration deferred to when RemotePay is up.
+
+**Revisit criteria:**
+- Once 1 real shop completes 1 real paid order + 1 real delivery + 1 real tax record: proceed to deployment layer.
+
+**Related:** commit a33ff4a (web-department scaffold)
+
+---
+
+## 2026-09-17 – Corrected Build Order: Waitlist Engine Before Dispatch
+
+**Decision:** Build the two-sided waitlist engine (shops + riders) BEFORE rider dispatch.
+
+**Context:** Original plan proposed rider dispatch next. This was wrong — dispatch assumes riders exist, but riders only exist after the waitlist activates a zone. Building dispatch first would have produced dead code.
+
+**Rationale:**
+- The waitlist is the entry point for the entire flywheel.
+- Shops and riders both enter through it; nothing else functions without it.
+- Dispatch requires active riders, which requires an activated zone, which requires the waitlist thresholds (15 shops + 3 riders).
+
+**Corrected order:**
+1. Waitlist engine (shops + riders) ← DONE (this commit)
+2. Rider dispatch (reads from waitlist active zones)
+3. Real RemotePay integration (riders must be paid)
+4. Deployment layer (deploy only working shops)
+
+**Single source of truth:**
+- `integration/waitlist.py` is authoritative for "is this zone active?"
+- `integration/ubernie_delivery.py` now queries the waitlist instead of hardcoding zones.
+- Removed the `_ACTIVE_ZONES` dict — no more hardcoded truth.
+
+**Success criteria (met):**
+- 15 shops in Soweto → zone shows 15/15 shops
+- 3 riders in Soweto → zone auto-activates
+- `/api/delivery/check?area=Soweto` flips from available:false → available:true
+- Pure data change; zero code change required for activation.
+
+**Related:** commits a33ff4a, 23cc74c, 27f854b
