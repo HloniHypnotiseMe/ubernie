@@ -1,0 +1,1 @@
+{"order_id": "ord_b2907433d5074175", "payment_id": "pay_mock_9d31f08f4d3b472a", "merchant_id": "test_merchant_1", "amount_minor": 14500, "vat_minor": 1891, "vat_rate": 0.15, "currency": "ZAR", "description": "Order ord_b2907433d5074175", "customer_reference": null, "recorded_at": "2026-09-17T12:45:58.921121+00:00", "source_system": "c6_web_department"}
