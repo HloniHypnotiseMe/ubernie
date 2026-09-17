@@ -187,3 +187,34 @@ unproven in practice.
 - Clicking "Pay" hits the API, creates an order, confirms it, dispatches a rider.
 
 **Related:** commits a33ff4a, 23cc74c, 27f854b, 625ca63
+
+---
+
+## 2026-09-17 – Full Storefront Renderer
+
+**Decision:** Expand the site renderer from a shell into a full interactive storefront.
+
+**What was added:**
+- `data/products.json` + `data/shop.json` written per site (source of truth for the JS).
+- `assets/products.js` — client-side product grid renderer, fetches products.json.
+- `assets/cart.js` — full cart UI: add, remove, total, checkout modal, order submission.
+- `assets/c6-api.js` — delivery check, createPayment, confirmOrder.
+- New page: `thank-you.html` — reads last order from sessionStorage.
+- Menu, About, Contact pages now populated from shop data.
+- `openDeliveryWidget()` restored — calls `/api/delivery/check` live.
+
+**Full browser flow now works:**
+1. Open `http://127.0.0.1:8100/sites/{shop_id}/index.html`
+2. See hero + featured products (loaded from `data/products.json`)
+3. Click "Add" on a product → cart badge updates
+4. Open cart modal → see line items + total
+5. Click "Checkout" → checkout.html
+6. Fill customer details, click "Check delivery" → real waitlist check
+7. Click "Pay with RemotePay" → API call → dispatch → thank-you redirect
+
+**Known limitations (accepted for now):**
+- Payment still mock (SimplyBlu credentials pending).
+- Checkout flow confirms immediately instead of redirecting to actual payment gateway.
+- Product images not supported yet (text-only cards).
+
+**Related:** commits a33ff4a → 9ad77f9
