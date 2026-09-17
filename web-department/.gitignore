@@ -31,3 +31,8 @@ generated-sites/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# SQLite database (local dev data)
+*.db
+*.sqlite
+*.sqlite3

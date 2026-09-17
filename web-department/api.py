@@ -30,6 +30,8 @@ from pydantic import BaseModel, Field
 load_dotenv()
 
 from integration import waitlist, rider_dispatch
+from db.engine import init_db
+from db import repositories as repo
 from builder.site_generator import SiteGenerator
 from builder.site_renderer import SiteRenderer
 from integration.remotepay_client import RemotePayClient, RemotePayError
@@ -37,6 +39,7 @@ from integration.ubernie_delivery import UbernieDeliveryClient
 from integration.taxai_hook import calculate_vat, record_transaction
 
 logging.basicConfig(level=logging.INFO)
+init_db()  # create tables if not exist
 log = logging.getLogger("web-department.api")
 
 app = FastAPI(title="C6 Web Department", version="0.2.0")
@@ -58,8 +61,6 @@ app.add_middleware(
 remotepay = RemotePayClient()
 delivery = UbernieDeliveryClient()
 
-_ORDERS: Dict[str, Dict[str, Any]] = {}
-_PAYMENTS: Dict[str, Dict[str, Any]] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -141,30 +142,46 @@ async def health():
 # ---------------------------------------------------------------------------
 @app.post("/api/waitlist/shop")
 async def join_waitlist_shop(req: ShopWaitlistRequest):
-    result = waitlist.register_shop(
-        business_name=req.business_name,
-        area=req.area,
-        industry=req.industry,
-        email=req.email,
-        phone=req.phone,
-        estimated_daily_orders=req.estimated_daily_orders,
-    )
-    status = waitlist.zone_status(req.area)
-    return {"registration": result, "zone": status}
+    import traceback
+    try:
+        result = waitlist.register_shop(
+            business_name=req.business_name,
+            area=req.area,
+            industry=req.industry,
+            email=req.email,
+            phone=req.phone,
+            estimated_daily_orders=req.estimated_daily_orders,
+        )
+        status = waitlist.zone_status(req.area)
+        return {"registration": result, "zone": status}
+    except Exception as e:
+        tb = traceback.format_exc()
+        print("\n=== WAITLIST SHOP REGISTRATION FAILED ===")
+        print(tb)
+        print("=== END TRACEBACK ===\n")
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
 
 
 @app.post("/api/waitlist/rider")
 async def join_waitlist_rider(req: RiderWaitlistRequest):
-    result = waitlist.register_rider(
-        full_name=req.full_name,
-        area=req.area,
-        vehicle=req.vehicle,
-        phone=req.phone,
-        email=req.email,
-        licence_number=req.licence_number,
-    )
-    status = waitlist.zone_status(req.area)
-    return {"registration": result, "zone": status}
+    import traceback
+    try:
+        result = waitlist.register_rider(
+            full_name=req.full_name,
+            area=req.area,
+            vehicle=req.vehicle,
+            phone=req.phone,
+            email=req.email,
+            licence_number=req.licence_number,
+        )
+        status = waitlist.zone_status(req.area)
+        return {"registration": result, "zone": status}
+    except Exception as e:
+        tb = traceback.format_exc()
+        print("\n=== WAITLIST RIDER REGISTRATION FAILED ===")
+        print(tb)
+        print("=== END TRACEBACK ===\n")
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
 
 
 @app.get("/api/waitlist/zone/{area}")
@@ -232,26 +249,22 @@ async def create_payment(req: CreatePaymentRequest, request: Request):
     if payment.get("provider_path") == "mock" and payment.get("payment_url", "").startswith("/"):
         payment["payment_url"] = f"{str(request.base_url).rstrip('/')}{payment['payment_url']}"
 
-    _ORDERS[order_id] = {
-        "order_id": order_id,
-        "shop_id": req.shop_id,
-        "merchant_id": req.merchant_id,
-        "items": [i.model_dump() for i in req.items],
-        "total_minor": total_minor,
-        "delivery": delivery_result,
-        "payment": payment,
-        "status": "awaiting_payment",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    _PAYMENTS[payment["payment_id"]] = {
-        "payment_id": payment["payment_id"],
-        "order_id": order_id,
-        "amount_minor": total_minor,
-        "status": "pending",
-        "provider_path": payment["provider_path"],
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "paid_at": None,
-    }
+    # Persist order + payment records
+    repo.create_order(
+        order_id=order_id,
+        shop_id=req.shop_id,
+        merchant_id=req.merchant_id,
+        items=[i.model_dump() for i in req.items],
+        total_minor=total_minor,
+        delivery=delivery_result,
+    )
+    repo.create_payment_record(
+        payment_id=payment["payment_id"],
+        order_id=order_id,
+        amount_minor=total_minor,
+        provider=payment["provider_path"],
+        payment_url=payment["payment_url"],
+    )
 
     return {
         "order_id": order_id,
@@ -266,11 +279,11 @@ async def create_payment(req: CreatePaymentRequest, request: Request):
 
 @app.post("/api/orders/confirm")
 async def confirm_order(req: ConfirmOrderRequest):
-    order = _ORDERS.get(req.order_id)
+    order = repo.get_order(req.order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    if order["status"] == "confirmed":
+    if order["status"] in ("confirmed", "dispatched", "delivered"):
         return {"status": "already_confirmed", "order_id": req.order_id}
 
     vat_minor = calculate_vat(order["total_minor"])
@@ -284,24 +297,24 @@ async def confirm_order(req: ConfirmOrderRequest):
         customer_reference=None,
     )
 
-    order["status"] = "confirmed"
-    order["tax_entry"] = tax_entry
-    order["confirmed_at"] = datetime.now(timezone.utc).isoformat()
+    repo.update_order_status(
+        req.order_id,
+        status="confirmed",
+        payment_id=req.payment_id,
+        vat_minor=vat_minor,
+        mark_confirmed=True,
+    )
 
-    # ---- Dispatch a rider if delivery was requested and zone is active ----
     dispatch_result: Dict[str, Any] = {"dispatched": False}
     delivery_area = (order.get("delivery") or {}).get("area")
     if delivery_area:
         match = rider_dispatch.find_best_rider(delivery_area)
         if match:
-            assignment = rider_dispatch.assign(
+            rider_dispatch.assign(
                 order_id=req.order_id,
                 rider_id=match["rider"]["id"],
                 area=delivery_area,
             )
-            order["status"] = "dispatched"
-            order["rider"] = match["rider"]
-            order["assignment"] = assignment
             dispatch_result = {
                 "dispatched": True,
                 "rider": match["rider"],
@@ -310,15 +323,16 @@ async def confirm_order(req: ConfirmOrderRequest):
                 "alternatives": match["alternatives"],
             }
         else:
-            order["status"] = "confirmed_pending_dispatch"
+            repo.update_order_status(req.order_id, status="confirmed_pending_dispatch")
             dispatch_result = {
                 "dispatched": False,
                 "reason": "no_available_rider",
                 "message": "Order confirmed. No rider currently available; will retry.",
             }
 
+    final = repo.get_order(req.order_id)
     return {
-        "status": order["status"],
+        "status": final["status"],
         "order_id": req.order_id,
         "vat_minor": vat_minor,
         "vat_display": f"R{vat_minor / 100:.2f}",
@@ -339,16 +353,12 @@ async def get_riders_in_zone(area: str):
 @app.post("/api/riders/{rider_id}/complete")
 async def complete_delivery(rider_id: str, order_id: str):
     record = rider_dispatch.release(rider_id=rider_id, order_id=order_id, reason="completed")
-    order = _ORDERS.get(order_id)
-    if order:
-        order["status"] = "delivered"
-        order["delivered_at"] = record["at"]
     return {"status": "completed", "release": record}
 
 
 @app.get("/api/orders/{order_id}")
 async def get_order(order_id: str):
-    order = _ORDERS.get(order_id)
+    order = repo.get_order(order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
@@ -414,7 +424,7 @@ async def generate_site(shop_id: str, req: GenerateSiteRequest):
 @app.get("/mock-checkout/{payment_id}", response_class=HTMLResponse)
 async def mock_checkout_page(payment_id: str, request: Request):
     """Simulated SimplyBlu hosted checkout page."""
-    payment = _PAYMENTS.get(payment_id)
+    payment = repo.get_payment(payment_id)
     if not payment:
         return HTMLResponse(
             "<h1>Payment not found</h1><p>No payment with that ID exists.</p>",
@@ -490,16 +500,11 @@ async def mock_checkout_pay(payment_id: str, request: Request):
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
 
-    # Mark paid
-    payment["status"] = "paid"
-    payment["paid_at"] = datetime.now(timezone.utc).isoformat()
-
-    # Find the order and get its return_url (stored during create_payment via payment metadata)
+    # Mark paid in DB
+    paid = repo.mark_payment_paid(payment_id)
+    if paid:
+        repo.update_order_status(paid["order_id"], status="paid", mark_paid=True)
     order_id = payment["order_id"]
-    order = _ORDERS.get(order_id)
-    if order:
-        order["status"] = "paid"
-        order["paid_at"] = payment["paid_at"]
 
     # Redirect back to the merchant return_url.
     # In production this would be a URL we passed to SimplyBlu at create-payment time.
@@ -514,9 +519,7 @@ async def mock_checkout_pay(payment_id: str, request: Request):
 @app.post("/mock-checkout/{payment_id}/cancel")
 async def mock_checkout_cancel(payment_id: str, request: Request):
     """Simulate a cancelled payment."""
-    payment = _PAYMENTS.get(payment_id)
-    if payment:
-        payment["status"] = "cancelled"
+    repo.mark_payment_cancelled(payment_id)
     return RedirectResponse(url=f"/mock-return?payment_id={payment_id}&cancelled=1", status_code=303)
 
 
@@ -544,12 +547,12 @@ async def mock_return(payment_id: str, order_id: str = "", cancelled: str = ""):
         """)
 
     # Auto-confirm the order server-side
-    payment = _PAYMENTS.get(payment_id)
+    payment = repo.get_payment(payment_id)
     if not payment:
         return HTMLResponse("<h1>Unknown payment</h1>", status_code=404)
 
     oid = order_id or payment["order_id"]
-    order = _ORDERS.get(oid)
+    order = repo.get_order(oid)
     if not order:
         return HTMLResponse(f"<h1>Order {oid} not found</h1>", status_code=404)
 
@@ -577,10 +580,7 @@ async def mock_return(payment_id: str, order_id: str = "", cancelled: str = ""):
         if delivery_area:
             match = rider_dispatch.find_best_rider(delivery_area)
             if match:
-                assignment = rider_dispatch.assign(order_id=oid, rider_id=match["rider"]["id"], area=delivery_area)
-                order["status"] = "dispatched"
-                order["rider"] = match["rider"]
-                order["assignment"] = assignment
+                rider_dispatch.assign(order_id=oid, rider_id=match["rider"]["id"], area=delivery_area)
                 dispatch_info = {
                     "dispatched": True,
                     "rider": match["rider"],
@@ -588,11 +588,12 @@ async def mock_return(payment_id: str, order_id: str = "", cancelled: str = ""):
                     "distance_km": match["distance_km"],
                 }
             else:
-                order["status"] = "confirmed_pending_dispatch"
+                repo.update_order_status(oid, status="confirmed_pending_dispatch")
                 dispatch_info = {"dispatched": False, "reason": "no_available_rider"}
 
+        final = repo.get_order(oid)
         confirm = {
-            "status": order["status"],
+            "status": final["status"],
             "order_id": oid,
             "vat_minor": vat_minor,
             "vat_display": f"R{vat_minor / 100:.2f}",
@@ -638,7 +639,7 @@ async def mock_return(payment_id: str, order_id: str = "", cancelled: str = ""):
 @app.get("/api/payments/{payment_id}")
 async def get_payment(payment_id: str):
     """Return payment state (used by the return URL to verify)."""
-    payment = _PAYMENTS.get(payment_id)
+    payment = repo.get_payment(payment_id)
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
     return payment

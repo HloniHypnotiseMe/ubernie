@@ -1,9 +1,9 @@
 # Web Department — Python dependencies
-# (Laravel/PHP ubernie core is separate; this is the Python sidecar)
-
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
 python-dotenv==1.0.0
 httpx==0.25.1
 python-multipart==0.0.6
+sqlalchemy==2.0.23
+alembic==1.12.1
