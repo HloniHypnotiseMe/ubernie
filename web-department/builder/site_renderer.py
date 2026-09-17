@@ -411,10 +411,18 @@ const C6 = (() => {
   }
 
   async function createPayment(items, opts = {}) {
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new Error('Your cart is empty. Add items before checking out.');
+    }
     const payload = {
       shop_id: cfg().shopId,
       merchant_id: cfg().merchantId,
-      items: items.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+      items: items.map(i => ({
+        id: String(i.id),
+        name: String(i.name),
+        price: Number(i.price),
+        qty: Number(i.qty),
+      })),
       customer_email: opts.email || null,
       customer_name: opts.name || null,
       delivery_area: opts.deliveryArea || null,
@@ -426,7 +434,14 @@ const C6 = (() => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error('Payment creation failed: ' + r.status);
+    if (!r.ok) {
+      let detail = r.statusText;
+      try {
+        const body = await r.json();
+        detail = body.detail || JSON.stringify(body);
+      } catch (_) { /* body wasn't JSON */ }
+      throw new Error('Payment creation failed: ' + r.status + ' — ' + detail);
+    }
     return r.json();
   }
 
@@ -571,11 +586,14 @@ async function checkDeliveryAvailability() {
   try {
     const res = await C6.checkDelivery(area);
     if (res.available) {
+      el.dataset.available = '1';
       el.innerHTML = `✅ Delivery available in ${res.area} — ${res.fee_display} (~${res.eta_minutes} min)`;
     } else {
+      el.dataset.available = '0';
       el.innerHTML = `❌ ${res.message}`;
     }
   } catch (e) {
+    el.dataset.available = '0';
     el.textContent = 'Error: ' + e.message;
   }
 }
@@ -591,31 +609,31 @@ async function submitOrder() {
     const email = document.getElementById('customer-email').value.trim();
     const area = document.getElementById('customer-area').value.trim();
 
-    const order = await C6.createPayment(cart, { name, email, deliveryArea: area });
-    status.innerHTML = `Order <b>${order.order_id}</b> created (${order.amount_display}). Confirming...`;
+    // Only send delivery_area if we confirmed delivery is available.
+    // Otherwise the order goes through as pickup — no surprise fees.
+    const deliveryOk = document.getElementById('delivery-result')?.dataset.available === '1';
+    const deliveryArea = deliveryOk ? area : null;
 
-    const confirm = await C6.confirmOrder(order.order_id, order.payment_id);
-    const rider = confirm.dispatch?.rider;
-    const riderLine = rider
-      ? `<br>🛵 Rider <b>${rider.full_name}</b> assigned (${confirm.dispatch.distance_km} km, score ${confirm.dispatch.score})`
-      : `<br>⏳ No rider available yet — will dispatch shortly.`;
+    // Step 1: create the payment — get back a redirect URL to the gateway
+    const order = await C6.createPayment(cart, { name, email, deliveryArea });
 
-    status.innerHTML = `<div class="p-4 bg-green-50 border border-green-200 rounded">
-      ✅ <b>${confirm.status}</b><br>
-      Order: ${confirm.order_id}<br>
-      VAT recorded: ${confirm.vat_display}${riderLine}
-    </div>`;
+    // Save what we need to remember for when the customer returns
+    sessionStorage.setItem('pending_order', JSON.stringify({
+      order_id: order.order_id,
+      payment_id: order.payment_id,
+      amount_display: order.amount_display,
+    }));
 
-    // Clear cart and redirect to thank-you
+    // Clear cart now — the customer is committed to paying
     cart = [];
     saveCart();
-    sessionStorage.setItem('last_order', JSON.stringify({
-      order_id: confirm.order_id,
-      status: confirm.status,
-      vat: confirm.vat_display,
-      dispatch: confirm.dispatch,
-    }));
-    setTimeout(() => { window.location.href = 'thank-you.html'; }, 1500);
+
+    // Step 2: redirect to the gateway (SimplyBlu, or our mock in dev)
+    status.innerHTML = `<div class="p-4 bg-blue-50 border border-blue-200 rounded">
+      Order <b>${order.order_id}</b> created. Redirecting to secure payment...
+    </div>`;
+
+    setTimeout(() => { window.location.href = order.payment_url; }, 400);
 
   } catch (e) {
     status.innerHTML = `<div class="p-4 bg-red-50 border border-red-200 rounded">Error: ${e.message}</div>`;
@@ -623,33 +641,67 @@ async function submitOrder() {
   }
 }
 
-// Checkout page: render summary
+// Checkout page: render summary OR redirect if cart empty
 if (document.getElementById('checkout-summary')) {
-  const sum = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  document.getElementById('checkout-summary').innerHTML = cart.length
-    ? cart.map(i => `<div class="flex justify-between py-1"><span>${i.name} x${i.qty}</span><span>R${(i.price*i.qty).toFixed(2)}</span></div>`).join('')
-      + `<div class="flex justify-between font-bold pt-3 border-t mt-3"><span>Subtotal</span><span>R${sum.toFixed(2)}</span></div>`
-    : '<div class="text-gray-500">Your cart is empty. <a href="menu.html" class="underline">Back to menu</a></div>';
+  if (!cart.length) {
+    document.getElementById('checkout-summary').innerHTML =
+      '<div class="text-gray-500">Your cart is empty. Redirecting to menu...</div>';
+    // Disable the pay button so no one can proceed
+    const btn = document.getElementById('pay-btn');
+    if (btn) { btn.disabled = true; btn.classList.add('opacity-50', 'cursor-not-allowed'); }
+    setTimeout(() => { window.location.href = 'menu.html'; }, 1500);
+  } else {
+    const sum = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    document.getElementById('checkout-summary').innerHTML =
+      cart.map(i => `<div class="flex justify-between py-1"><span>${i.name} x${i.qty}</span><span>R${(i.price*i.qty).toFixed(2)}</span></div>`).join('')
+      + `<div class="flex justify-between font-bold pt-3 border-t mt-3"><span>Subtotal</span><span>R${sum.toFixed(2)}</span></div>`;
+  }
 }
 
-// Thank-you page: render last order
+// Thank-you page: fetch order status by order_id (from URL or session)
 if (document.getElementById('order-details')) {
-  const last = JSON.parse(sessionStorage.getItem('last_order') || 'null');
-  if (last) {
-    const rider = last.dispatch?.rider;
-    document.getElementById('order-details').innerHTML = `
-      <p class="text-sm text-gray-500 mb-2">Order ID</p>
-      <p class="font-mono mb-4">${last.order_id}</p>
-      <p class="text-sm text-gray-500 mb-2">Status</p>
-      <p class="mb-4 capitalize">${last.status}</p>
-      <p class="text-sm text-gray-500 mb-2">VAT recorded</p>
-      <p class="mb-4">${last.vat}</p>
-      ${rider ? `
-        <p class="text-sm text-gray-500 mb-2">Your rider</p>
-        <p>🛵 ${rider.full_name} (${rider.phone || 'no phone'})</p>
-      ` : ''}
-    `;
+  const params = new URLSearchParams(location.search);
+  const orderId = params.get('order_id');
+  const paymentId = params.get('payment_id');
+
+  async function loadOrder() {
+    const el = document.getElementById('order-details');
+    const pending = JSON.parse(sessionStorage.getItem('pending_order') || 'null');
+    const oid = orderId || (pending && pending.order_id);
+    const pid = paymentId || (pending && pending.payment_id);
+
+    if (!oid) {
+      el.innerHTML = '<p class="text-gray-500">No recent order found.</p>';
+      return;
+    }
+
+    try {
+      const base = (window.C6_CONFIG?.apiBaseUrl || '').replace(/\/$/, '');
+      const res = await fetch(base + '/api/orders/' + oid);
+      if (!res.ok) throw new Error('Order lookup failed');
+      const order = await res.json();
+      const rider = order.rider;
+      el.innerHTML = `
+        <p class="text-sm text-gray-500 mb-1">Order ID</p>
+        <p class="font-mono mb-4">${order.order_id}</p>
+        <p class="text-sm text-gray-500 mb-1">Status</p>
+        <p class="mb-4 capitalize">${order.status.replace(/_/g, ' ')}</p>
+        ${order.total_minor ? `
+          <p class="text-sm text-gray-500 mb-1">Total paid</p>
+          <p class="mb-4">R${(order.total_minor / 100).toFixed(2)}</p>
+        ` : ''}
+        ${rider ? `
+          <p class="text-sm text-gray-500 mb-1">Your rider</p>
+          <p>🛵 ${rider.full_name}${rider.phone ? ` · ${rider.phone}` : ''}</p>
+        ` : ''}
+      `;
+      sessionStorage.removeItem('pending_order');
+    } catch (e) {
+      el.innerHTML = `<p class="text-red-500 text-sm">Could not load order: ${e.message}</p>`;
+    }
   }
+
+  loadOrder();
 }
 
 updateCartCount();

@@ -218,3 +218,46 @@ unproven in practice.
 - Product images not supported yet (text-only cards).
 
 **Related:** commits a33ff4a → 9ad77f9
+
+---
+
+## 2026-09-17 – Realistic Payment Redirect Flow
+
+**Decision:** Implement the redirect-then-return payment pattern before configuring
+SimplyBlu credentials.
+
+**Context:** Checkout auto-confirmed after a 400ms mock delay. This is a simulation,
+not a real payment flow. All real gateways (SimplyBlu, PayFast, Stripe) work the
+same way: merchant creates payment → customer redirected to gateway → customer pays
+→ gateway redirects back with a reference → merchant confirms.
+
+**Rationale:**
+- SimplyBlu cannot be configured until we have a return URL that handles its response.
+- Redirect-then-return is provider-agnostic — build once, works everywhere.
+- The simulation hid a critical integration concern (return handling).
+
+**Implementation:**
+- `assets/cart.js`: `submitOrder()` now redirects to `order.payment_url` instead of
+  auto-confirming. Stores `pending_order` in sessionStorage; clears cart.
+- `api.py`: New `/mock-checkout/{payment_id}` route — a server-rendered page that
+  simulates SimplyBlu's hosted checkout. Has "Pay now" / "Cancel" buttons.
+- `api.py`: `/mock-checkout/{payment_id}/pay` — marks paid, redirects to `/mock-return`.
+- `api.py`: `/mock-return` — the merchant's return URL handler. Runs the full confirm
+  flow inline (VAT → tax → dispatch) and shows a thank-you page.
+- `api.py`: `/api/payments/{payment_id}` — return payment state.
+- `thank-you.html` template now fetches `/api/orders/{order_id}` on load to display
+  final status.
+
+**Production swap (when SimplyBlu is live):**
+- Set `REMOTEPAY_MODE=live` and configure SimplyBlu creds.
+- The `payment_url` returned by create-payment will be SimplyBlu's real checkout.
+- SimplyBlu redirects back to a URL we pass as `return_url`.
+- Same page reads `payment_id` from URL → confirms → done. No code change.
+
+**Success criteria (met):**
+- Create payment → get gateway URL
+- Customer redirected to gateway page
+- "Pay now" → 303 redirect chain → thank-you page
+- Order auto-confirmed, VAT recorded, rider dispatched
+
+**Related:** commits a33ff4a → 36af64f

@@ -219,7 +219,9 @@ class RemotePayClient:
     ) -> Dict[str, Any]:
         payment_id = f"pay_mock_{uuid.uuid4().hex[:16]}"
         transaction_id = f"txn_mock_{uuid.uuid4().hex[:16]}"
-        mock_url = f"{self.base_url}/mock-checkout/{payment_id}?amount={amount_minor}&desc={description}"
+        # Mock gateway lives in web-department, not RemotePay. Return a relative
+        # path so the API layer can rewrite it with the correct base URL.
+        mock_url = f"/mock-checkout/{payment_id}"
 
         log.warning(
             "MOCK PAYMENT created (no real money moved) — payment_id=%s amount_minor=%d",
