@@ -57,6 +57,8 @@ _STATIC_DIR = _os_dash.path.join(_os_dash.path.dirname(_os_dash.path.abspath(__f
 _os_dash.makedirs(_STATIC_DIR, exist_ok=True)
 app.mount("/dashboard", StaticFiles(directory=_os_dash.path.join(_STATIC_DIR, "dashboard"), html=True), name="dashboard")
 app.mount("/rider", StaticFiles(directory=_os_dash.path.join(_STATIC_DIR, "rider"), html=True), name="rider")
+app.mount("/signup", StaticFiles(directory=_os_dash.path.join(_STATIC_DIR, "signup"), html=True), name="signup")
+app.mount("/track", StaticFiles(directory=_os_dash.path.join(_STATIC_DIR, "track"), html=True), name="track")
 
 app.add_middleware(
     CORSMiddleware,
@@ -808,6 +810,32 @@ async def get_rider_stats(user: dict = Depends(require_role("rider", "admin"))):
 @app.get("/api/rider/jobs")
 async def get_rider_jobs(limit: int = 100, user: dict = Depends(require_role("rider", "admin"))):
     return repo.list_jobs_for_rider(user["user_id"], limit)
+
+
+# ---------------------------------------------------------------------------
+# Public order tracking (no auth — customer-facing)
+# ---------------------------------------------------------------------------
+@app.get("/api/track/{order_id}")
+async def track_order(order_id: str):
+    """Public order tracking — returns only safe fields, no PII."""
+    order = repo.get_order(order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    # Safe subset — no customer email, no payment references
+    return {
+        "order_id": order["order_id"],
+        "status": order["status"],
+        "items": [{"name": i.get("name"), "qty": i.get("qty")} for i in (order["items"] or [])],
+        "total_minor": order["total_minor"],
+        "delivery": {
+            "area": (order.get("delivery") or {}).get("area"),
+            "eta_minutes": (order.get("delivery") or {}).get("eta_minutes"),
+            "fee_display": (order.get("delivery") or {}).get("fee_display"),
+        } if order.get("delivery") else None,
+        "created_at": order.get("created_at"),
+        "dispatched_at": order.get("dispatched_at"),
+        "delivered_at": order.get("delivered_at"),
+    }
 
 
 if __name__ == "__main__":

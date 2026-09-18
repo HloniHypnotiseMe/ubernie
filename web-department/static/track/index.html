@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track your order — C6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div class="max-w-xl mx-auto py-12 px-4">
+    <h1 class="text-3xl font-bold mb-2">Track your order</h1>
+    <p class="text-gray-500 mb-8">Enter the order ID you received at checkout</p>
+
+    <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <input id="order_id" placeholder="e.g. ord_abc123..." class="w-full px-4 py-3 border rounded-lg mb-4 font-mono">
+        <button onclick="track()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
+            Track order
+        </button>
+        <div id="result" class="mt-6"></div>
+    </div>
+
+    <p class="text-center text-gray-400 text-xs mt-6">
+        Didn't get an order ID? Contact the shop directly.
+    </p>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8100';
+
+const STEPS = [
+    { key: 'awaiting_payment', label: 'Order placed', icon: '📝' },
+    { key: 'paid', label: 'Payment received', icon: '💳' },
+    { key: 'confirmed', label: 'Confirmed by shop', icon: '✅' },
+    { key: 'dispatched', label: 'On the way', icon: '🛵' },
+    { key: 'delivered', label: 'Delivered', icon: '🎉' },
+];
+
+async function track() {
+    const id = document.getElementById('order_id').value.trim();
+    const el = document.getElementById('result');
+    if (!id) { el.innerHTML = '<p class="text-red-500">Enter an order ID</p>'; return; }
+    el.innerHTML = '<p class="text-gray-400">Loading...</p>';
+    try {
+        const r = await fetch(API + '/api/track/' + encodeURIComponent(id));
+        if (!r.ok) {
+            const err = await r.json();
+            throw new Error(err.detail || 'Order not found');
+        }
+        const o = await r.json();
+        renderOrder(o);
+    } catch (e) {
+        el.innerHTML = `<div class="p-4 bg-red-50 border border-red-200 rounded text-red-700">${e.message}</div>`;
+    }
+}
+
+function renderOrder(o) {
+    const el = document.getElementById('result');
+    const currentIdx = STEPS.findIndex(s => s.key === o.status);
+    const active = currentIdx >= 0 ? currentIdx : 0;
+
+    const timeline = STEPS.map((s, i) => {
+        const done = i <= active;
+        return `
+            <div class="flex items-center gap-3 py-2 ${done ? '' : 'opacity-40'}">
+                <div class="text-2xl">${done ? s.icon : '○'}</div>
+                <div class="flex-1">
+                    <p class="font-medium">${s.label}</p>
+                    ${i === active ? '<p class="text-xs text-gray-500">Current status</p>' : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    el.innerHTML = `
+        <div class="border rounded-lg p-4 mb-4">
+            <p class="font-mono text-xs text-gray-500 mb-1">${o.order_id}</p>
+            <p class="text-2xl font-bold">R${(o.total_minor / 100).toFixed(2)}</p>
+            <p class="text-sm text-gray-500 mt-1">${o.items?.length || 0} item(s)</p>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-4">
+            ${timeline}
+        </div>
+        ${o.delivery?.area ? `
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
+                🛵 Delivery to <b>${o.delivery.area}</b> · ETA ${o.delivery.eta_minutes || '—'} min
+                ${o.delivery.fee_display ? '· Fee ' + o.delivery.fee_display : ''}
+            </div>
+        ` : ''}
+    `;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign up — C6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div class="max-w-2xl mx-auto py-12 px-4">
+    <h1 class="text-3xl font-bold mb-2">Create your account</h1>
+    <p class="text-gray-500 mb-8">Join the C6 platform as a shop or a rider</p>
+
+    <div class="flex gap-2 mb-6">
+        <button onclick="selectRole('shop')" id="tab-shop" class="flex-1 py-3 rounded-lg border-2 border-green-600 bg-green-50 font-bold text-green-700">
+            🏪 I'm a shop
+        </button>
+        <button onclick="selectRole('rider')" id="tab-rider" class="flex-1 py-3 rounded-lg border-2 border-gray-200 font-bold text-gray-600">
+            🛵 I'm a rider
+        </button>
+    </div>
+
+    <!-- Common fields -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input id="full_name" placeholder="Full name" class="w-full px-3 py-2 border rounded">
+            <input id="phone" placeholder="Phone (e.g., 0821234567)" class="w-full px-3 py-2 border rounded">
+            <input id="email" type="email" placeholder="Email" class="w-full px-3 py-2 border rounded">
+            <input id="area" placeholder="Area (e.g., Soweto)" class="w-full px-3 py-2 border rounded">
+            <input id="password" type="password" placeholder="Password (min 6 chars)" class="w-full px-3 py-2 border rounded md:col-span-2">
+        </div>
+    </div>
+
+    <!-- Shop-only fields -->
+    <div id="shop-fields" class="bg-white rounded-2xl p-6 shadow-sm mb-4">
+        <p class="text-sm text-gray-500 mb-3">Shop details</p>
+        <input id="business_name" placeholder="Business name (e.g., Kota King)" class="w-full px-3 py-2 border rounded">
+    </div>
+
+    <!-- Rider-only fields -->
+    <div id="rider-fields" class="bg-white rounded-2xl p-6 shadow-sm mb-4 hidden">
+        <p class="text-sm text-gray-500 mb-3">Rider details</p>
+        <input id="vehicle" placeholder="Vehicle (default: Zeebee Greenscooter)" value="Zeebee Greenscooter" class="w-full px-3 py-2 border rounded mb-3">
+        <input id="licence_number" placeholder="Driver's licence number (optional)" class="w-full px-3 py-2 border rounded">
+    </div>
+
+    <button onclick="doSignup()" id="signup-btn" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold">
+        Create account
+    </button>
+
+    <div id="msg" class="mt-4 text-sm"></div>
+
+    <p class="text-center text-gray-500 text-sm mt-6">
+        Already have an account? <a href="/dashboard/" class="text-green-600 hover:underline">Shop login</a> · <a href="/rider/" class="text-green-600 hover:underline">Rider login</a>
+    </p>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8100';
+let currentRole = 'shop';
+
+function selectRole(r) {
+    currentRole = r;
+    const shopTab = document.getElementById('tab-shop');
+    const riderTab = document.getElementById('tab-rider');
+    const shopFields = document.getElementById('shop-fields');
+    const riderFields = document.getElementById('rider-fields');
+    if (r === 'shop') {
+        shopTab.className = 'flex-1 py-3 rounded-lg border-2 border-green-600 bg-green-50 font-bold text-green-700';
+        riderTab.className = 'flex-1 py-3 rounded-lg border-2 border-gray-200 font-bold text-gray-600';
+        shopFields.classList.remove('hidden');
+        riderFields.classList.add('hidden');
+    } else {
+        shopTab.className = 'flex-1 py-3 rounded-lg border-2 border-gray-200 font-bold text-gray-600';
+        riderTab.className = 'flex-1 py-3 rounded-lg border-2 border-blue-600 bg-blue-50 font-bold text-blue-700';
+        shopFields.classList.add('hidden');
+        riderFields.classList.remove('hidden');
+    }
+}
+
+async function doSignup() {
+    const btn = document.getElementById('signup-btn');
+    const msg = document.getElementById('msg');
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+    msg.textContent = '';
+
+    const payload = {
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+        full_name: document.getElementById('full_name').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        area: document.getElementById('area').value.trim(),
+    };
+    if (currentRole === 'shop') {
+        payload.business_name = document.getElementById('business_name').value.trim();
+    } else {
+        payload.vehicle = document.getElementById('vehicle').value.trim() || 'Zeebee Greenscooter';
+        payload.licence_number = document.getElementById('licence_number').value.trim();
+    }
+
+    try {
+        const r = await fetch(API + '/api/auth/signup/' + currentRole, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'Signup failed');
+
+        // Store token in the right localStorage slot
+        const token = data.access_token;
+        if (currentRole === 'shop') localStorage.setItem('c6_token', token);
+        else localStorage.setItem('c6_rider_token', token);
+
+        msg.innerHTML = `
+            <div class="p-4 bg-green-50 border border-green-200 rounded">
+                ✅ Account created! ${currentRole === 'shop' ? 'Opening your dashboard...' : 'Opening rider app...'}
+                ${data.user.shop_id ? '<br>Your shop_id: <b>' + data.user.shop_id + '</b>' : ''}
+            </div>`;
+
+        setTimeout(() => {
+            window.location.href = currentRole === 'shop' ? '/dashboard/' : '/rider/';
+        }, 1500);
+    } catch (e) {
+        msg.innerHTML = `<div class="p-4 bg-red-50 border border-red-200 rounded">Error: ${e.message}</div>`;
+        btn.disabled = false;
+        btn.textContent = 'Create account';
+    }
+}
+</script>
+</body>
+</html>
