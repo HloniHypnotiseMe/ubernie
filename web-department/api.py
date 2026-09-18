@@ -31,6 +31,8 @@ load_dotenv()
 
 from integration import waitlist, rider_dispatch
 from db.engine import init_db
+from auth.security import hash_password, verify_password, create_access_token
+from auth.dependencies import current_user, require_role
 from db import repositories as repo
 from builder.site_generator import SiteGenerator
 from builder.site_renderer import SiteRenderer
@@ -108,6 +110,33 @@ class CreatePaymentRequest(BaseModel):
 class ConfirmOrderRequest(BaseModel):
     order_id: str
     payment_id: str
+
+
+# ---------------------------------------------------------------------------
+# Auth Schemas
+# ---------------------------------------------------------------------------
+class ShopSignupRequest(BaseModel):
+    email: str = Field(min_length=3)
+    password: str = Field(min_length=6)
+    full_name: str = Field(min_length=1)
+    business_name: str = Field(min_length=1)
+    phone: str = Field(min_length=5)
+    area: str = Field(min_length=1)
+
+
+class RiderSignupRequest(BaseModel):
+    email: str = Field(min_length=3)
+    password: str = Field(min_length=6)
+    full_name: str = Field(min_length=1)
+    phone: str = Field(min_length=5)
+    area: str = Field(min_length=1)
+    vehicle: str = "Zeebee Greenscooter"
+    licence_number: str = ""
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(min_length=3)
+    password: str = Field(min_length=1)
 
 
 class GenerateSiteRequest(BaseModel):
@@ -643,6 +672,76 @@ async def get_payment(payment_id: str):
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
     return payment
+
+
+# ---------------------------------------------------------------------------
+# Auth routes
+# ---------------------------------------------------------------------------
+@app.post("/api/auth/signup/shop")
+async def signup_shop(req: ShopSignupRequest):
+    """Register a shop owner + automatically add them to the waitlist."""
+    try:
+        user = repo.create_user(
+            role="shop", email=req.email, password_hash=hash_password(req.password),
+            full_name=req.full_name, phone=req.phone, area=req.area,
+            business_name=req.business_name,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
+
+    # Add to waitlist
+    waitlist.register_shop(
+        business_name=req.business_name, area=req.area, industry="retail",
+        email=req.email, phone=req.phone,
+    )
+
+    token = create_access_token(user_id=user["id"], role=user["role"], email=user["email"])
+    return {"user": user, "access_token": token, "token_type": "bearer"}
+
+
+@app.post("/api/auth/signup/rider")
+async def signup_rider(req: RiderSignupRequest):
+    try:
+        user = repo.create_user(
+            role="rider", email=req.email, password_hash=hash_password(req.password),
+            full_name=req.full_name, phone=req.phone, area=req.area,
+            vehicle=req.vehicle, licence_number=req.licence_number,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
+
+    waitlist.register_rider(
+        full_name=req.full_name, area=req.area, vehicle=req.vehicle,
+        phone=req.phone, email=req.email, licence_number=req.licence_number,
+    )
+
+    token = create_access_token(user_id=user["id"], role=user["role"], email=user["email"])
+    return {"user": user, "access_token": token, "token_type": "bearer"}
+
+
+@app.post("/api/auth/login")
+async def login(req: LoginRequest):
+    u = repo.get_user_by_email(req.email)
+    if not u or not u.password_hash or not verify_password(req.password, u.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    token = create_access_token(user_id=u.id, role=u.role, email=u.email)
+    return {
+        "user": {"id": u.id, "role": u.role, "email": u.email, "full_name": u.full_name, "area": u.area},
+        "access_token": token,
+        "token_type": "bearer",
+    }
+
+
+@app.get("/api/auth/me")
+async def whoami(user: dict = __import__("fastapi").Depends(current_user)):
+    u = repo.get_user_by_id(user["user_id"])
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"id": u.id, "role": u.role, "email": u.email, "full_name": u.full_name, "area": u.area}
 
 
 if __name__ == "__main__":

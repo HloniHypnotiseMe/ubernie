@@ -342,3 +342,59 @@ def record_tax(**kw) -> Dict[str, Any]:
         raise
     finally:
         s.close()
+
+
+# ---------------------------------------------------------------------------
+# Users / Auth
+# ---------------------------------------------------------------------------
+def create_user(
+    *,
+    role: str,
+    email: str,
+    password_hash: str,
+    full_name: str,
+    phone: str | None = None,
+    area: str | None = None,
+    business_name: str | None = None,
+    vehicle: str | None = None,
+    licence_number: str | None = None,
+) -> dict:
+    from db.models import User
+    from sqlalchemy.exc import IntegrityError
+    s = SessionLocal()
+    try:
+        u = User(
+            role=role, email=email.lower().strip(), password_hash=password_hash,
+            full_name=full_name, phone=phone, area=(area.strip().lower() if area else None),
+            business_name=business_name, vehicle=vehicle, licence_number=licence_number,
+        )
+        s.add(u)
+        s.commit()
+        s.refresh(u)
+        return {"id": u.id, "role": u.role, "email": u.email, "full_name": u.full_name, "area": u.area}
+    except IntegrityError:
+        s.rollback()
+        raise ValueError("Email already registered")
+    except Exception:
+        s.rollback()
+        raise
+    finally:
+        s.close()
+
+
+def get_user_by_email(email: str):
+    from db.models import User
+    s = SessionLocal()
+    try:
+        return s.query(User).filter_by(email=email.lower().strip()).first()
+    finally:
+        s.close()
+
+
+def get_user_by_id(user_id: str):
+    from db.models import User
+    s = SessionLocal()
+    try:
+        return s.get(User, user_id)
+    finally:
+        s.close()
