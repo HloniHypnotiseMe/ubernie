@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Dashboard — C6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Login view -->
+<div id="login-view" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
+        <h1 class="text-2xl font-bold mb-1">Shop Dashboard</h1>
+        <p class="text-gray-500 text-sm mb-6">Log in to manage your orders</p>
+        <input id="login-email" type="email" placeholder="Email" class="w-full px-3 py-2 border rounded mb-3">
+        <input id="login-password" type="password" placeholder="Password" class="w-full px-3 py-2 border rounded mb-4">
+        <button onclick="doLogin()" id="login-btn" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold">
+            Log in
+        </button>
+        <div id="login-error" class="text-red-500 text-sm mt-3"></div>
+    </div>
+</div>
+
+<!-- Dashboard view (hidden until login) -->
+<div id="dash-view" class="hidden max-w-6xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold" id="shop-name">—</h1>
+            <p class="text-gray-500 text-sm" id="shop-id-display"></p>
+        </div>
+        <button onclick="doLogout()" class="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100">
+            Log out
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Total orders</p>
+            <p class="text-3xl font-bold mt-1" id="stat-total">—</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Revenue (paid)</p>
+            <p class="text-3xl font-bold mt-1" id="stat-revenue">—</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Pending</p>
+            <p class="text-3xl font-bold mt-1" id="stat-pending">—</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Delivered</p>
+            <p class="text-3xl font-bold mt-1" id="stat-delivered">—</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Orders</h2>
+            <button onclick="loadAll()" class="text-sm text-green-600 hover:underline">Refresh</button>
+        </div>
+        <div id="orders-list" class="space-y-3">
+            <p class="text-gray-400 text-sm">Loading...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8100';
+
+function getToken() { return localStorage.getItem('c6_token'); }
+function setToken(t) { localStorage.setItem('c6_token', t); }
+function clearToken() { localStorage.removeItem('c6_token'); }
+
+function showDash() {
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('dash-view').classList.remove('hidden');
+}
+
+function showLogin() {
+    document.getElementById('dash-view').classList.add('hidden');
+    document.getElementById('login-view').classList.remove('hidden');
+}
+
+async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Logging in...';
+    try {
+        const r = await fetch(API + '/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'Login failed');
+        if (data.user.role !== 'shop') throw new Error('This account is not a shop');
+        setToken(data.access_token);
+        document.getElementById('shop-name').textContent = data.user.full_name + ' — ' + (data.user.shop_id || '');
+        document.getElementById('shop-id-display').textContent = 'shop_id: ' + (data.user.shop_id || 'none');
+        showDash();
+        loadAll();
+    } catch (e) {
+        errEl.textContent = e.message;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Log in';
+    }
+}
+
+function doLogout() {
+    clearToken();
+    showLogin();
+}
+
+async function loadAll() {
+    const t = getToken();
+    if (!t) { showLogin(); return; }
+    try {
+        const [stats, orders] = await Promise.all([
+            fetch(API + '/api/shop/stats', { headers: { Authorization: 'Bearer ' + t } }).then(r => r.json()),
+            fetch(API + '/api/shop/orders', { headers: { Authorization: 'Bearer ' + t } }).then(r => r.json()),
+        ]);
+        document.getElementById('stat-total').textContent = stats.total_orders ?? '0';
+        document.getElementById('stat-revenue').textContent = stats.total_revenue_display ?? 'R0.00';
+        document.getElementById('stat-pending').textContent = stats.pending_orders ?? '0';
+        document.getElementById('stat-delivered').textContent = stats.delivered_orders ?? '0';
+        renderOrders(orders.orders || []);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderOrders(orders) {
+    const el = document.getElementById('orders-list');
+    if (!orders.length) {
+        el.innerHTML = '<p class="text-gray-400 text-sm">No orders yet.</p>';
+        return;
+    }
+    el.innerHTML = orders.map(o => `
+        <div class="border rounded-lg p-4 flex justify-between items-center">
+            <div>
+                <p class="font-mono text-xs text-gray-500">${o.order_id}</p>
+                <p class="font-medium">R${(o.total_minor / 100).toFixed(2)} · ${o.items?.length || 0} item(s)</p>
+                <p class="text-xs text-gray-400">${o.created_at?.slice(0, 19).replace('T', ' ') || ''}</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                o.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                o.status === 'dispatched' ? 'bg-blue-100 text-blue-800' :
+                o.status === 'awaiting_payment' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-gray-100 text-gray-700'
+            }">${o.status.replace(/_/g, ' ')}</span>
+        </div>
+    `).join('');
+}
+
+// Auto-login if token exists
+window.addEventListener('DOMContentLoaded', async () => {
+    const t = getToken();
+    if (!t) { showLogin(); return; }
+    try {
+        const r = await fetch(API + '/api/auth/me', { headers: { Authorization: 'Bearer ' + t } });
+        if (!r.ok) throw new Error();
+        const me = await r.json();
+        if (me.role !== 'shop') throw new Error();
+        document.getElementById('shop-name').textContent = me.full_name + ' — ' + (me.shop_id || '');
+        document.getElementById('shop-id-display').textContent = 'shop_id: ' + (me.shop_id || 'none');
+        showDash();
+        loadAll();
+    } catch {
+        clearToken();
+        showLogin();
+    }
+});
+</script>
+</body>
+</html>
