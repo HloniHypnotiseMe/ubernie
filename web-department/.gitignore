@@ -36,3 +36,4 @@ htmlcov/
 *.db
 *.sqlite
 *.sqlite3
+static/dashboard/

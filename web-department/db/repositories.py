@@ -414,3 +414,39 @@ def get_user_by_id(user_id: str):
         return s.get(User, user_id)
     finally:
         s.close()
+
+
+# ---------------------------------------------------------------------------
+# Shop-scoped queries
+# ---------------------------------------------------------------------------
+def list_orders_for_shop(shop_id: str, limit: int = 100):
+    s = SessionLocal()
+    try:
+        rows = (s.query(Order)
+                  .filter_by(shop_id=shop_id)
+                  .order_by(Order.created_at.desc())
+                  .limit(limit)
+                  .all())
+        return [_order_to_dict(o) for o in rows]
+    finally:
+        s.close()
+
+
+def shop_stats(shop_id: str):
+    s = SessionLocal()
+    try:
+        orders = s.query(Order).filter_by(shop_id=shop_id).all()
+        total_orders = len(orders)
+        total_revenue_minor = sum(o.total_minor or 0 for o in orders if o.status in ("confirmed", "dispatched", "delivered"))
+        pending_orders = sum(1 for o in orders if o.status == "awaiting_payment")
+        delivered = sum(1 for o in orders if o.status == "delivered")
+        return {
+            "shop_id": shop_id,
+            "total_orders": total_orders,
+            "total_revenue_minor": total_revenue_minor,
+            "total_revenue_display": f"R{total_revenue_minor / 100:.2f}",
+            "pending_orders": pending_orders,
+            "delivered_orders": delivered,
+        }
+    finally:
+        s.close()

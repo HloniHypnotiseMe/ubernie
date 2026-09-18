@@ -52,6 +52,11 @@ _os_mount.makedirs(_SITES_DIR, exist_ok=True)
 
 app.mount("/sites", StaticFiles(directory=_SITES_DIR, html=True), name="sites")
 
+import os as _os_dash
+_STATIC_DIR = _os_dash.path.join(_os_dash.path.dirname(_os_dash.path.abspath(__file__)), "static")
+_os_dash.makedirs(_STATIC_DIR, exist_ok=True)
+app.mount("/dashboard", StaticFiles(directory=_os_dash.path.join(_STATIC_DIR, "dashboard"), html=True), name="dashboard")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -769,6 +774,25 @@ async def whoami(user: dict = Depends(current_user)):
         "full_name": u.full_name, "area": u.area,
         "shop_id": u.shop_id,
     }
+
+
+# ---------------------------------------------------------------------------
+# Shop dashboard endpoints (JWT: role=shop only)
+# ---------------------------------------------------------------------------
+@app.get("/api/shop/stats")
+async def get_shop_stats(user: dict = Depends(require_role("shop", "admin"))):
+    u = repo.get_user_by_id(user["user_id"])
+    if not u or not u.shop_id:
+        raise HTTPException(status_code=404, detail="No shop_id for this account")
+    return repo.shop_stats(u.shop_id)
+
+
+@app.get("/api/shop/orders")
+async def get_shop_orders(limit: int = 100, user: dict = Depends(require_role("shop", "admin"))):
+    u = repo.get_user_by_id(user["user_id"])
+    if not u or not u.shop_id:
+        raise HTTPException(status_code=404, detail="No shop_id for this account")
+    return {"shop_id": u.shop_id, "orders": repo.list_orders_for_shop(u.shop_id, limit)}
 
 
 if __name__ == "__main__":
