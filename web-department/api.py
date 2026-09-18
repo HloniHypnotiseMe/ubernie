@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -380,17 +380,31 @@ async def get_riders_in_zone(area: str):
 
 
 @app.post("/api/riders/{rider_id}/complete")
-async def complete_delivery(rider_id: str, order_id: str):
+async def complete_delivery(rider_id: str, order_id: str, user: dict = Depends(current_user)):
+    if user["role"] != "admin" and user["user_id"] != rider_id:
+        raise HTTPException(status_code=403, detail="You can only complete your own deliveries")
     record = rider_dispatch.release(rider_id=rider_id, order_id=order_id, reason="completed")
     return {"status": "completed", "release": record}
 
 
 @app.get("/api/orders/{order_id}")
-async def get_order(order_id: str):
+async def get_order(order_id: str, user: dict = Depends(current_user)):
     order = repo.get_order(order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    return order
+    # Admin: unrestricted. Shop: must own. Rider: must be assigned or unassigned+in their area.
+    if user["role"] == "admin":
+        return order
+    if user["role"] == "shop":
+        u = repo.get_user_by_id(user["user_id"])
+        if u and order["shop_id"] in (u.business_name, u.id):
+            return order
+        raise HTTPException(status_code=403, detail="Not your order")
+    if user["role"] == "rider":
+        if order.get("rider_id") and order["rider_id"] != user["user_id"]:
+            raise HTTPException(status_code=403, detail="Not assigned to you")
+        return order
+    raise HTTPException(status_code=403, detail="Forbidden")
 
 
 # ---------------------------------------------------------------------------
@@ -399,8 +413,16 @@ async def get_order(order_id: str):
 import os as _os
 
 @app.post("/api/sites/{shop_id}/generate")
-async def generate_site(shop_id: str, req: GenerateSiteRequest):
-    """Generate a static storefront for a shop and return a preview URL."""
+async def generate_site(shop_id: str, req: GenerateSiteRequest, user: dict = Depends(current_user)):
+    """Generate a static storefront for a shop. Only the owning shop or admin can trigger."""
+    if user["role"] != "admin":
+        u = repo.get_user_by_id(user["user_id"])
+        if not u or u.role != "shop":
+            raise HTTPException(status_code=403, detail="Only shops or admin can generate sites")
+        # Allow if shop_id matches the user's business_name or user_id
+        allowed_ids = {u.id, u.business_name or ""}
+        if shop_id not in allowed_ids:
+            raise HTTPException(status_code=403, detail="You can only generate your own site")
     base_dir = _os.getenv("GENERATED_SITES_DIR", "generated-sites")
     output_dir = f"{base_dir}/{shop_id}"
 
@@ -737,7 +759,7 @@ async def login(req: LoginRequest):
 
 
 @app.get("/api/auth/me")
-async def whoami(user: dict = __import__("fastapi").Depends(current_user)):
+async def whoami(user: dict = Depends(current_user)):
     u = repo.get_user_by_id(user["user_id"])
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
