@@ -1,27 +1,31 @@
 #!/usr/bin/env python3
-"""Password hashing + JWT tokens."""
+"""Password hashing (direct bcrypt) + JWT tokens."""
 from __future__ import annotations
 
 import os
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 from jose import jwt, JWTError
-from passlib.context import CryptContext
 
 SECRET_KEY = os.getenv("JWT_SECRET", "dev-secret-change-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))  # 24h
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))
 
-_pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def _prepare(password: str) -> bytes:
+    """bcrypt has a hard 72-byte limit. Truncate the bytes safely."""
+    b = password.encode("utf-8")
+    return b[:72]
 
 
 def hash_password(plain: str) -> str:
-    return _pwd.hash(plain)
+    return bcrypt.hashpw(_prepare(plain), bcrypt.gensalt()).decode("ascii")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
     try:
-        return _pwd.verify(plain, hashed)
+        return bcrypt.checkpw(_prepare(plain), hashed.encode("ascii"))
     except Exception:
         return False
 
@@ -39,7 +43,6 @@ def create_access_token(*, user_id: str, role: str, email: str) -> str:
 
 
 def decode_token(token: str) -> dict:
-    """Returns payload or raises ValueError."""
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError as e:
