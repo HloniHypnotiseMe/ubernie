@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rider — C6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Login view -->
+<div id="login-view" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
+        <h1 class="text-2xl font-bold mb-1">Rider App</h1>
+        <p class="text-gray-500 text-sm mb-6">Log in to see your jobs</p>
+        <input id="login-email" type="email" placeholder="Email" class="w-full px-3 py-2 border rounded mb-3">
+        <input id="login-password" type="password" placeholder="Password" class="w-full px-3 py-2 border rounded mb-4">
+        <button onclick="doLogin()" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
+            Log in
+        </button>
+        <div id="login-error" class="text-red-500 text-sm mt-3"></div>
+    </div>
+</div>
+
+<!-- Rider view -->
+<div id="rider-view" class="hidden max-w-4xl mx-auto p-4 md:p-6">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold" id="rider-name">—</h1>
+            <p class="text-gray-500 text-sm" id="rider-id-display"></p>
+        </div>
+        <button onclick="doLogout()" class="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100">
+            Log out
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Active jobs</p>
+            <p class="text-3xl font-bold mt-1" id="stat-active">—</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Completed</p>
+            <p class="text-3xl font-bold mt-1" id="stat-completed">—</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Earnings</p>
+            <p class="text-3xl font-bold mt-1 text-green-600" id="stat-earnings">—</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 md:p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Active jobs</h2>
+            <button onclick="loadAll()" class="text-sm text-blue-600 hover:underline">Refresh</button>
+        </div>
+        <div id="active-list" class="space-y-3">
+            <p class="text-gray-400 text-sm">Loading...</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 md:p-6">
+        <h2 class="text-xl font-bold mb-4">Recent deliveries</h2>
+        <div id="completed-list" class="space-y-2">
+            <p class="text-gray-400 text-sm">No deliveries yet.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8100';
+
+function getToken() { return localStorage.getItem('c6_rider_token'); }
+function setToken(t) { localStorage.setItem('c6_rider_token', t); }
+function clearToken() { localStorage.removeItem('c6_rider_token'); }
+
+function showRider() {
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('rider-view').classList.remove('hidden');
+}
+function showLogin() {
+    document.getElementById('rider-view').classList.add('hidden');
+    document.getElementById('login-view').classList.remove('hidden');
+}
+
+async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Logging in...';
+    try {
+        const r = await fetch(API + '/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'Login failed');
+        if (data.user.role !== 'rider') throw new Error('This account is not a rider');
+        setToken(data.access_token);
+        document.getElementById('rider-name').textContent = data.user.full_name;
+        document.getElementById('rider-id-display').textContent = 'id: ' + data.user.id;
+        showRider();
+        loadAll();
+    } catch (e) {
+        errEl.textContent = e.message;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Log in';
+    }
+}
+
+function doLogout() {
+    clearToken();
+    showLogin();
+}
+
+async function loadAll() {
+    const t = getToken();
+    if (!t) { showLogin(); return; }
+    try {
+        const [stats, jobs] = await Promise.all([
+            fetch(API + '/api/rider/stats', { headers: { Authorization: 'Bearer ' + t } }).then(r => r.json()),
+            fetch(API + '/api/rider/jobs', { headers: { Authorization: 'Bearer ' + t } }).then(r => r.json()),
+        ]);
+        document.getElementById('stat-active').textContent = stats.active_jobs ?? '0';
+        document.getElementById('stat-completed').textContent = stats.completed_jobs ?? '0';
+        document.getElementById('stat-earnings').textContent = stats.earnings_display ?? 'R0.00';
+        renderActive(jobs.active || []);
+        renderCompleted(jobs.completed || []);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderActive(orders) {
+    const el = document.getElementById('active-list');
+    if (!orders.length) {
+        el.innerHTML = '<p class="text-gray-400 text-sm">No active jobs. Check back soon.</p>';
+        return;
+    }
+    el.innerHTML = orders.map(o => `
+        <div class="border rounded-lg p-4 flex justify-between items-center">
+            <div class="flex-1">
+                <p class="font-mono text-xs text-gray-500">${o.order_id}</p>
+                <p class="font-medium">R${(o.total_minor / 100).toFixed(2)} · ${o.items?.length || 0} item(s)</p>
+                <p class="text-xs text-gray-400 mt-1">
+                    Deliver to: ${o.delivery?.area || '—'} · ETA ${o.delivery?.eta_minutes || '—'} min
+                </p>
+            </div>
+            <button onclick="markDelivered('${o.order_id}')" class="ml-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium">
+                Mark delivered
+            </button>
+        </div>
+    `).join('');
+}
+
+function renderCompleted(orders) {
+    const el = document.getElementById('completed-list');
+    if (!orders.length) {
+        el.innerHTML = '<p class="text-gray-400 text-sm">No deliveries yet.</p>';
+        return;
+    }
+    el.innerHTML = orders.map(o => `
+        <div class="border-b py-2 flex justify-between text-sm">
+            <span class="font-mono text-xs text-gray-500">${o.order_id.slice(-12)}</span>
+            <span>R${(o.total_minor / 100).toFixed(2)}</span>
+            <span class="text-gray-400">${o.delivered_at?.slice(0, 16).replace('T', ' ') || ''}</span>
+        </div>
+    `).join('');
+}
+
+async function markDelivered(orderId) {
+    const t = getToken();
+    if (!t) return;
+    // Get the rider's own id from /api/auth/me
+    const me = await fetch(API + '/api/auth/me', { headers: { Authorization: 'Bearer ' + t } }).then(r => r.json());
+    const r = await fetch(API + `/api/riders/${me.id}/complete?order_id=${orderId}`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + t },
+    });
+    if (r.ok) {
+        await loadAll();
+    } else {
+        const err = await r.json();
+        alert('Error: ' + (err.detail || 'Failed'));
+    }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    const t = getToken();
+    if (!t) { showLogin(); return; }
+    try {
+        const r = await fetch(API + '/api/auth/me', { headers: { Authorization: 'Bearer ' + t } });
+        if (!r.ok) throw new Error();
+        const me = await r.json();
+        if (me.role !== 'rider') throw new Error();
+        document.getElementById('rider-name').textContent = me.full_name;
+        document.getElementById('rider-id-display').textContent = 'id: ' + me.id;
+        showRider();
+        loadAll();
+    } catch {
+        clearToken();
+        showLogin();
+    }
+});
+</script>
+</body>
+</html>

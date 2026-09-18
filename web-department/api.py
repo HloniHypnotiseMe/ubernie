@@ -56,6 +56,7 @@ import os as _os_dash
 _STATIC_DIR = _os_dash.path.join(_os_dash.path.dirname(_os_dash.path.abspath(__file__)), "static")
 _os_dash.makedirs(_STATIC_DIR, exist_ok=True)
 app.mount("/dashboard", StaticFiles(directory=_os_dash.path.join(_STATIC_DIR, "dashboard"), html=True), name="dashboard")
+app.mount("/rider", StaticFiles(directory=_os_dash.path.join(_STATIC_DIR, "rider"), html=True), name="rider")
 
 app.add_middleware(
     CORSMiddleware,
@@ -719,7 +720,7 @@ async def signup_shop(req: ShopSignupRequest):
     # Add to waitlist
     waitlist.register_shop(
         business_name=req.business_name, area=req.area, industry="retail",
-        email=req.email, phone=req.phone,
+        email=req.email, phone=req.phone, user_id=user["id"],
     )
 
     token = create_access_token(user_id=user["id"], role=user["role"], email=user["email"])
@@ -742,6 +743,7 @@ async def signup_rider(req: RiderSignupRequest):
     waitlist.register_rider(
         full_name=req.full_name, area=req.area, vehicle=req.vehicle,
         phone=req.phone, email=req.email, licence_number=req.licence_number,
+        user_id=user["id"],
     )
 
     token = create_access_token(user_id=user["id"], role=user["role"], email=user["email"])
@@ -793,6 +795,19 @@ async def get_shop_orders(limit: int = 100, user: dict = Depends(require_role("s
     if not u or not u.shop_id:
         raise HTTPException(status_code=404, detail="No shop_id for this account")
     return {"shop_id": u.shop_id, "orders": repo.list_orders_for_shop(u.shop_id, limit)}
+
+
+# ---------------------------------------------------------------------------
+# Rider app endpoints (JWT: role=rider only)
+# ---------------------------------------------------------------------------
+@app.get("/api/rider/stats")
+async def get_rider_stats(user: dict = Depends(require_role("rider", "admin"))):
+    return repo.rider_stats(user["user_id"])
+
+
+@app.get("/api/rider/jobs")
+async def get_rider_jobs(limit: int = 100, user: dict = Depends(require_role("rider", "admin"))):
+    return repo.list_jobs_for_rider(user["user_id"], limit)
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ MIN_SHOPS = int(os.getenv("WAITLIST_MIN_SHOPS", "15"))
 MIN_RIDERS = int(os.getenv("WAITLIST_MIN_RIDERS", "3"))
 
 
-def register_shop(*, business_name, area, industry, email, phone, estimated_daily_orders=0):
+def register_shop(*, business_name, area, industry, email, phone, estimated_daily_orders=0, user_id=None):
     result = repo.add_waitlist_entry(
         record_type="shop",
         area=area,
@@ -23,12 +23,13 @@ def register_shop(*, business_name, area, industry, email, phone, estimated_dail
         business_name=business_name,
         industry=industry,
         estimated_daily_orders=estimated_daily_orders,
+        user_id=user_id,
     )
     log.info("Shop registered: %s in %s", business_name, result["area"])
     return result
 
 
-def register_rider(*, full_name, area, vehicle, phone, email, licence_number=""):
+def register_rider(*, full_name, area, vehicle, phone, email, licence_number="", user_id=None):
     result = repo.add_waitlist_entry(
         record_type="rider",
         area=area,
@@ -37,6 +38,7 @@ def register_rider(*, full_name, area, vehicle, phone, email, licence_number="")
         full_name=full_name,
         vehicle=vehicle,
         licence_number=licence_number,
+        user_id=user_id,
     )
     log.info("Rider registered: %s in %s", full_name, result["area"])
     return result

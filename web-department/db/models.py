@@ -46,6 +46,7 @@ class WaitlistEntry(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     record_type: Mapped[str] = mapped_column(String(16), index=True)
     area: Mapped[str] = mapped_column(String(128), index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     business_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email: Mapped[str] = mapped_column(String(255))

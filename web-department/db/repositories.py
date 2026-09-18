@@ -48,6 +48,9 @@ def add_waitlist_entry(**kwargs) -> Dict[str, Any]:
             estimated_daily_orders=kwargs.get("estimated_daily_orders", 0),
             status="WAITING",
         )
+        # The WaitlistEntry model needs a user_id column — add via model
+        if kwargs.get("user_id"):
+            entry.user_id = kwargs["user_id"]
         s.add(entry)
         s.commit()
         entry_id = entry.id
@@ -120,11 +123,20 @@ def active_riders_in_area(area: str) -> List[Dict[str, Any]]:
     s = SessionLocal()
     try:
         rows = s.query(WaitlistEntry).filter_by(area=area_norm, record_type="rider", status="WAITING").all()
-        return [
-            {"id": r.id, "full_name": r.full_name, "area": r.area,
-             "vehicle": r.vehicle, "phone": r.phone, "email": r.email}
-            for r in rows
-        ]
+        out = []
+        for r in rows:
+            # Prefer the linked user_id (real account); fall back to waitlist id
+            rid = r.user_id or r.id
+            out.append({
+                "id": rid,
+                "waitlist_id": r.id,
+                "full_name": r.full_name,
+                "area": r.area,
+                "vehicle": r.vehicle,
+                "phone": r.phone,
+                "email": r.email,
+            })
+        return out
     finally:
         s.close()
 
@@ -447,6 +459,53 @@ def shop_stats(shop_id: str):
             "total_revenue_display": f"R{total_revenue_minor / 100:.2f}",
             "pending_orders": pending_orders,
             "delivered_orders": delivered,
+        }
+    finally:
+        s.close()
+
+
+# ---------------------------------------------------------------------------
+# Rider-scoped queries
+# ---------------------------------------------------------------------------
+def list_jobs_for_rider(rider_id: str, limit: int = 100):
+    """Active jobs (status=dispatched) + recent completed history."""
+    s = SessionLocal()
+    try:
+        # Active: order.rider_id == rider_id AND status == dispatched
+        active = (s.query(Order)
+                    .filter_by(rider_id=rider_id, status="dispatched")
+                    .order_by(Order.created_at.desc())
+                    .limit(limit)
+                    .all())
+        # Completed: order.rider_id == rider_id AND status == delivered
+        completed = (s.query(Order)
+                       .filter_by(rider_id=rider_id, status="delivered")
+                       .order_by(Order.delivered_at.desc())
+                       .limit(limit)
+                       .all())
+        return {
+            "active": [_order_to_dict(o) for o in active],
+            "completed": [_order_to_dict(o) for o in completed],
+        }
+    finally:
+        s.close()
+
+
+def rider_stats(rider_id: str):
+    """Stats for a rider: active, completed, earnings estimate."""
+    s = SessionLocal()
+    try:
+        active = s.query(Order).filter_by(rider_id=rider_id, status="dispatched").count()
+        completed = s.query(Order).filter_by(rider_id=rider_id, status="delivered").count()
+        # Earnings: for each delivered order, estimate the rider's cut.
+        # Until we record rider_payout separately, use 85% of a nominal R25 fee.
+        earnings_minor = completed * int(round(25.00 * 0.85 * 100))  # R21.25 per delivery
+        return {
+            "rider_id": rider_id,
+            "active_jobs": active,
+            "completed_jobs": completed,
+            "earnings_minor": earnings_minor,
+            "earnings_display": f"R{earnings_minor / 100:.2f}",
         }
     finally:
         s.close()
