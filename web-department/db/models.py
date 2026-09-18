@@ -34,6 +34,7 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255))
     area: Mapped[str | None] = mapped_column(String(128), index=True)
     business_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    shop_id: Mapped[str | None] = mapped_column(String(64), unique=True, index=True, nullable=True)
     vehicle: Mapped[str | None] = mapped_column(String(64), nullable=True)
     licence_number: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)

@@ -17,6 +17,17 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+import re
+
+def _make_shop_id(business_name: str) -> str:
+    """Slugify a business name + 4-char random suffix."""
+    import secrets
+    slug = re.sub(r"[^a-z0-9]+", "_", business_name.lower()).strip("_")[:32]
+    suffix = secrets.token_hex(2)  # 4 chars
+    return f"{slug}_{suffix}"
+
+
+
 # ---------------------------------------------------------------------------
 # Waitlist
 # ---------------------------------------------------------------------------
@@ -363,15 +374,20 @@ def create_user(
     from sqlalchemy.exc import IntegrityError
     s = SessionLocal()
     try:
+        shop_id = _make_shop_id(business_name) if role == "shop" and business_name else None
         u = User(
             role=role, email=email.lower().strip(), password_hash=password_hash,
             full_name=full_name, phone=phone, area=(area.strip().lower() if area else None),
-            business_name=business_name, vehicle=vehicle, licence_number=licence_number,
+            business_name=business_name, shop_id=shop_id,
+            vehicle=vehicle, licence_number=licence_number,
         )
         s.add(u)
         s.commit()
         s.refresh(u)
-        return {"id": u.id, "role": u.role, "email": u.email, "full_name": u.full_name, "area": u.area}
+        return {
+            "id": u.id, "role": u.role, "email": u.email, "full_name": u.full_name,
+            "area": u.area, "shop_id": u.shop_id,
+        }
     except IntegrityError:
         s.rollback()
         raise ValueError("Email already registered")

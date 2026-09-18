@@ -397,7 +397,7 @@ async def get_order(order_id: str, user: dict = Depends(current_user)):
         return order
     if user["role"] == "shop":
         u = repo.get_user_by_id(user["user_id"])
-        if u and order["shop_id"] in (u.business_name, u.id):
+        if u and u.shop_id and order["shop_id"] == u.shop_id:
             return order
         raise HTTPException(status_code=403, detail="Not your order")
     if user["role"] == "rider":
@@ -419,9 +419,7 @@ async def generate_site(shop_id: str, req: GenerateSiteRequest, user: dict = Dep
         u = repo.get_user_by_id(user["user_id"])
         if not u or u.role != "shop":
             raise HTTPException(status_code=403, detail="Only shops or admin can generate sites")
-        # Allow if shop_id matches the user's business_name or user_id
-        allowed_ids = {u.id, u.business_name or ""}
-        if shop_id not in allowed_ids:
+        if u.shop_id != shop_id:
             raise HTTPException(status_code=403, detail="You can only generate your own site")
     base_dir = _os.getenv("GENERATED_SITES_DIR", "generated-sites")
     output_dir = f"{base_dir}/{shop_id}"
@@ -752,7 +750,10 @@ async def login(req: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     token = create_access_token(user_id=u.id, role=u.role, email=u.email)
     return {
-        "user": {"id": u.id, "role": u.role, "email": u.email, "full_name": u.full_name, "area": u.area},
+        "user": {
+            "id": u.id, "role": u.role, "email": u.email,
+            "full_name": u.full_name, "area": u.area, "shop_id": u.shop_id,
+        },
         "access_token": token,
         "token_type": "bearer",
     }
@@ -763,7 +764,11 @@ async def whoami(user: dict = Depends(current_user)):
     u = repo.get_user_by_id(user["user_id"])
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"id": u.id, "role": u.role, "email": u.email, "full_name": u.full_name, "area": u.area}
+    return {
+        "id": u.id, "role": u.role, "email": u.email,
+        "full_name": u.full_name, "area": u.area,
+        "shop_id": u.shop_id,
+    }
 
 
 if __name__ == "__main__":
