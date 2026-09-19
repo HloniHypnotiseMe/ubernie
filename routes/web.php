@@ -9,3 +9,5 @@ require __DIR__.'/agent.php';
 Route::get('/', function () {
     return view('home');
 })->name('home');
+
+require __DIR__.'/mission-control.php';
