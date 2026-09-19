@@ -17,6 +17,7 @@ class MasterOrchestratorAgent
     protected BusinessInABoxAgent $businessInABox;
     protected RemotePayActivationAgent $remotePay;
     protected SubdomainFactoryAgent $subdomainFactory;
+    protected \App\Services\WinEventService $winEvents;
 
     public function __construct()
     {
@@ -25,6 +26,7 @@ class MasterOrchestratorAgent
         $this->businessInABox = new BusinessInABoxAgent();
         $this->remotePay = new RemotePayActivationAgent();
         $this->subdomainFactory = new SubdomainFactoryAgent();
+        $this->winEvents = new \App\Services\WinEventService();
     }
 
     public function handleSearch(string $searchTerm): array
@@ -56,6 +58,22 @@ class MasterOrchestratorAgent
         if (!empty($data['industry'])) {
             $results['subdomain'] = $this->subdomainFactory->generateSubdomain($data['industry']);
         }
+
+        $this->winEvents->emit([
+            'objective' => 'Activate a business inside the Ubernie growth system',
+            'minimum_winnable_action' => 'Complete directory diagnosis and routing for one business',
+            'proof_required' => 'Orchestration result containing a business diagnosis',
+            'project' => 'Ubernie',
+            'actor' => 'ubernie_master_orchestrator',
+            'tier' => 'MARKET',
+            'evidence' => [
+                'event' => 'business_orchestration_completed',
+                'business_id' => $business->id,
+                'result_keys' => array_keys($results),
+            ],
+            'capability_unlocked' => 'Business discovery and cross-system routing',
+            'next_win' => 'Activate the selected business system and capture external evidence',
+        ]);
 
         return $results;
     }
