@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'mission_control' => [
+        'token' => env('C6_MISSION_CONTROL_TOKEN', ''),
+    ],
     'remotepay' => [
         'base_url' => env('REMOTEPAY_API_BASE_URL'),
         'timeout' => env('REMOTEPAY_API_TIMEOUT', 15),
