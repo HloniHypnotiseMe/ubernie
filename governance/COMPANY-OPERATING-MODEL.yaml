@@ -1,0 +1,19 @@
+# Product-specific company operating model
+# Generated from C6-Os/agent-arsenal/governance/C6-COMPANY-OPERATING-MODEL.yaml
+product:
+  id: ubernie
+  name: "Ubernie"
+  repo: ubernie
+  ceo:
+    role: "Ubernie CEO"
+    agent_id: "ubernie.ceo"
+  departments:
+    strategy: {head: "Chief Strategy Officer", agents: ["market-intelligence", "business-intelligence"]}
+    operations: {head: "Chief Operating Officer", agents: ["directory-operations", "marketplace-operations"]}
+    sales: {head: "Chief Revenue Officer", agents: ["business-acquisition", "revenue-hunter", "affiliate-manager"]}
+    marketing: {head: "Chief Marketing Officer", agents: ["seo-manager", "local-discovery", "content-manager"]}
+    product: {head: "Chief Product Officer", agents: ["business-builder", "maturity-diagnosis", "recommendations"]}
+    technology: {head: "Chief Technology Officer", agents: ["platform-engineer", "search-engineer", "qa-engineer"]}
+    customer_success: {head: "Chief Customer Officer", agents: ["merchant-success", "business-onboarding", "support-manager"]}
+    risk_compliance: {head: "Chief Risk & Compliance Officer", agents: ["risk-liaison", "evidence-auditor"]}
+  platform_dependencies: [c6-saas-core, RemotePay-, C6-Os, n8n]
