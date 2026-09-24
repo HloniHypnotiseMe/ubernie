@@ -14,7 +14,7 @@ def test_production_contract_disables_mock_fallback():
     env = (ROOT / ".env.example").read_text()
     assert "REMOTEPAY_MODE" in api
     assert "REMOTEPAY_WEBHOOK_SECRET" in api
-    assert "REMOTEPAY_MODE=live" in (ROOT / "docker-compose.production.yml").read_text()
+    assert "REMOTEPAY_MODE: live" in (ROOT / "docker-compose.production.yml").read_text()
     assert "payment is not verified as paid" in api
 
 
