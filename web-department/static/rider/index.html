@@ -68,7 +68,7 @@
 </div>
 
 <script>
-const API = 'http://127.0.0.1:8100';
+const API = window.UBERNIE_WEB_DEPARTMENT_API || '';
 
 function getToken() { return localStorage.getItem('c6_rider_token'); }
 function setToken(t) { localStorage.setItem('c6_rider_token', t); }
