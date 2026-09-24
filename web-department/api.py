@@ -15,7 +15,10 @@ Endpoints the generated shop sites call:
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import logging
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List
@@ -44,7 +47,17 @@ logging.basicConfig(level=logging.INFO)
 init_db()  # create tables if not exist
 log = logging.getLogger("web-department.api")
 
-app = FastAPI(title="C6 Web Department", version="0.2.0")
+app = FastAPI(title="Ubernie Web Department", version="0.3.0")
+
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
+ALLOWED_ORIGINS = [x.strip() for x in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if x.strip()]
+if not ALLOWED_ORIGINS:
+    ALLOWED_ORIGINS = ["*"] if ENVIRONMENT != "production" else []
+
+if ENVIRONMENT == "production" and os.getenv("JWT_SECRET", "dev-secret-change-in-production") == "dev-secret-change-in-production":
+    raise RuntimeError("JWT_SECRET must be set to a non-default value in production")
+if ENVIRONMENT == "production" and os.getenv("REMOTEPAY_MODE", "auto").lower() != "live":
+    raise RuntimeError("REMOTEPAY_MODE=live is required in production; mock/legacy fallback is disabled")
 
 import os as _os_mount
 _SITES_DIR = _os_mount.getenv("GENERATED_SITES_DIR", "generated-sites")
@@ -62,10 +75,10 @@ app.mount("/track", StaticFiles(directory=_os_dash.path.join(_STATIC_DIR, "track
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-RemotePay-Signature"],
 )
 
 remotepay = RemotePayClient()
@@ -118,6 +131,14 @@ class CreatePaymentRequest(BaseModel):
 class ConfirmOrderRequest(BaseModel):
     order_id: str
     payment_id: str
+
+
+class RemotePayWebhookRequest(BaseModel):
+    payment_id: str
+    order_id: str | None = None
+    status: str
+    amount_minor: int | None = None
+    currency: str = "ZAR"
 
 
 # ---------------------------------------------------------------------------
@@ -320,8 +341,18 @@ async def confirm_order(req: ConfirmOrderRequest):
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    if order["status"] in ("confirmed", "dispatched", "delivered"):
+    if order["status"] in ("confirmed", "dispatched", "delivered", "confirmed_pending_dispatch"):
         return {"status": "already_confirmed", "order_id": req.order_id}
+
+    payment = repo.get_payment(req.payment_id)
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    if payment["order_id"] != req.order_id:
+        raise HTTPException(status_code=409, detail="Payment does not belong to order")
+    if payment["amount_minor"] != order["total_minor"]:
+        raise HTTPException(status_code=409, detail="Payment amount does not match order")
+    if payment["status"] != "paid":
+        raise HTTPException(status_code=409, detail="Payment is not verified as paid")
 
     vat_minor = calculate_vat(order["total_minor"])
     tax_entry = record_transaction(
@@ -603,59 +634,12 @@ async def mock_return(payment_id: str, order_id: str = "", cancelled: str = ""):
             </body></html>
         """)
 
-    # Auto-confirm the order server-side
-    payment = repo.get_payment(payment_id)
-    if not payment:
-        return HTMLResponse("<h1>Unknown payment</h1>", status_code=404)
-
-    oid = order_id or payment["order_id"]
-    order = repo.get_order(oid)
-    if not order:
-        return HTMLResponse(f"<h1>Order {oid} not found</h1>", status_code=404)
-
-    # If already confirmed, don't re-dispatch
-    if order["status"] in ("confirmed", "dispatched", "confirmed_pending_dispatch"):
-        confirm = {"status": order["status"], "order_id": oid, "note": "already confirmed"}
-    else:
-        # Run the confirm flow inline (same as /api/orders/confirm)
-        vat_minor = calculate_vat(order["total_minor"])
-        tax_entry = record_transaction(
-            order_id=oid,
-            payment_id=payment_id,
-            merchant_id=order["merchant_id"],
-            amount_minor=order["total_minor"],
-            vat_minor=vat_minor,
-            description=f"Order {oid}",
-            customer_reference=None,
-        )
-        order["status"] = "confirmed"
-        order["tax_entry"] = tax_entry
-        order["confirmed_at"] = datetime.now(timezone.utc).isoformat()
-
-        dispatch_info = {"dispatched": False}
-        delivery_area = (order.get("delivery") or {}).get("area")
-        if delivery_area:
-            match = rider_dispatch.find_best_rider(delivery_area)
-            if match:
-                rider_dispatch.assign(order_id=oid, rider_id=match["rider"]["id"], area=delivery_area)
-                dispatch_info = {
-                    "dispatched": True,
-                    "rider": match["rider"],
-                    "score": match["score"],
-                    "distance_km": match["distance_km"],
-                }
-            else:
-                repo.update_order_status(oid, status="confirmed_pending_dispatch")
-                dispatch_info = {"dispatched": False, "reason": "no_available_rider"}
-
-        final = repo.get_order(oid)
-        confirm = {
-            "status": final["status"],
-            "order_id": oid,
-            "vat_minor": vat_minor,
-            "vat_display": f"R{vat_minor / 100:.2f}",
-            "dispatch": dispatch_info,
-        }
+    # Mock payments are already marked paid above; use the same authoritative
+    # confirmation path as production rather than maintaining a second flow.
+    try:
+        confirm = await confirm_order(ConfirmOrderRequest(order_id=oid, payment_id=payment_id))
+    except HTTPException as exc:
+        return HTMLResponse(f"<h1>Payment confirmation failed</h1><p>{exc.detail}</p>", status_code=exc.status_code)
 
     rider = (confirm.get("dispatch") or {}).get("rider") or {}
     rider_line = (
@@ -691,6 +675,42 @@ async def mock_return(payment_id: str, order_id: str = "", cancelled: str = ""):
         </p>
     </div>
 </body></html>""")
+
+
+@app.post("/api/webhooks/remotepay")
+async def remotepay_webhook(req: RemotePayWebhookRequest, request: Request):
+    """Authoritative RemotePay payment-state boundary.
+
+    The webhook marks the local payment paid only after signature verification.
+    Browser redirects are never treated as payment proof.
+    """
+    raw = await request.body()
+    secret = os.getenv("REMOTEPAY_WEBHOOK_SECRET", "")
+    supplied = request.headers.get("X-RemotePay-Signature", "")
+    if ENVIRONMENT == "production":
+        if not secret:
+            raise HTTPException(status_code=503, detail="RemotePay webhook secret is not configured")
+        expected = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, supplied):
+            raise HTTPException(status_code=401, detail="Invalid webhook signature")
+
+    payment = repo.get_payment(req.payment_id)
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    if req.order_id and req.order_id != payment["order_id"]:
+        raise HTTPException(status_code=409, detail="Payment/order mismatch")
+    if req.amount_minor is not None and req.amount_minor != payment["amount_minor"]:
+        raise HTTPException(status_code=409, detail="Payment amount mismatch")
+
+    status = req.status.lower()
+    if status in {"paid", "completed", "success", "succeeded"}:
+        repo.mark_payment_paid(req.payment_id)
+        repo.update_order_status(payment["order_id"], status="paid", payment_id=req.payment_id, mark_paid=True)
+        return {"accepted": True, "status": "paid", "payment_id": req.payment_id, "order_id": payment["order_id"]}
+    if status in {"cancelled", "canceled", "failed", "expired"}:
+        repo.mark_payment_cancelled(req.payment_id)
+        return {"accepted": True, "status": status, "payment_id": req.payment_id, "order_id": payment["order_id"]}
+    return {"accepted": True, "status": status, "payment_id": req.payment_id, "order_id": payment["order_id"]}
 
 
 @app.get("/api/payments/{payment_id}")
@@ -840,4 +860,4 @@ async def track_order(order_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("api:app", host="127.0.0.1", port=8100, reload=True)
+    uvicorn.run("api:app", host=os.getenv("HOST", "0.0.0.0"), port=int(os.getenv("PORT", "8100")), reload=ENVIRONMENT != "production")
