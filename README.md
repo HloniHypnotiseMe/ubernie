@@ -1,12 +1,12 @@
 # Ubernie - South African Business Discovery & Marketplace Platform
 
-**Production-Ready Laravel 12 Application**
+**Ubernie business platform — directory/application layer + Web Department storefront engine**
 
 - Domain: www.ubernie.co.za
 - Tech Stack: Laravel 12, PHP 8.4, MySQL 8, TailwindCSS, Alpine.js, Meilisearch, Leaflet (OSM)
 - Mobile-first | SEO-optimized | VPS-ready | Green brand identity
 
-This repository contains the complete production-ready codebase for Phase 1 of Ubernie.
+This repository contains Ubernie's directory/intelligence application work and the authoritative Web Department storefront/commerce engine. The Web Department is the production path for generated merchant websites; the older Laravel layer is retained as product/application source and is not represented as a deployable complete Laravel distribution.
 
 ## Project Structure
 
@@ -124,3 +124,23 @@ See `SECURITY.md`
 **Ready for future expansion** into full delivery network (Phase 2+).
 
 All code is production-grade, follows Laravel best practices, and is optimized for South African market.
+
+## Current authoritative website path
+
+For merchant websites, do not build a new storefront from scratch and do not treat the root Laravel tree as the deployment artifact. Use `web-department/`:
+
+- `builder/site_generator.py` — industry-specific website generation
+- `builder/site_renderer.py` — renders HTML, assets and product data
+- `api.py` — storefront, order, auth, delivery and payment API
+- `static/dashboard/` — merchant dashboard
+- `static/rider/` — rider application
+- `static/signup/` — shop/rider onboarding
+- `static/track/` — public order tracking
+- `integration/remotepay_client.py` — RemotePay payment-link integration
+- `PRODUCTION.md` — production contract
+
+Production payment confirmation is evidence-gated: browser redirects do not prove payment. A verified RemotePay webhook marks the local payment paid, after which order confirmation may proceed.
+
+## Verification
+
+The Web Department has a GitHub Actions contract suite covering dependency completeness, production payment configuration, localhost endpoint removal and production container artifacts. The current verified branch was merged to `main` after the suite passed.
