@@ -1,0 +1,25 @@
+services:
+  web-department:
+    build: .
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      ENVIRONMENT: production
+      HOST: 0.0.0.0
+      PORT: 8100
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      REMOTEPAY_API_URL: ${REMOTEPAY_API_URL:?REMOTEPAY_API_URL is required}
+      REMOTEPAY_MODE: live
+      REMOTEPAY_WEBHOOK_SECRET: ${REMOTEPAY_WEBHOOK_SECRET:?REMOTEPAY_WEBHOOK_SECRET is required}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
+      WEB_DEPARTMENT_PUBLIC_URL: ${WEB_DEPARTMENT_PUBLIC_URL:?WEB_DEPARTMENT_PUBLIC_URL is required}
+      GENERATED_SITES_DIR: /app/generated-sites
+    volumes:
+      - web_department_data:/app/data
+      - web_department_sites:/app/generated-sites
+    ports:
+      - "127.0.0.1:8100:8100"
+volumes:
+  web_department_data:
+  web_department_sites:
