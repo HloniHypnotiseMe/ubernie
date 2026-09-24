@@ -584,7 +584,7 @@ async def mock_checkout_page(payment_id: str, request: Request):
 @app.post("/mock-checkout/{payment_id}/pay")
 async def mock_checkout_pay(payment_id: str, request: Request):
     """Simulate a successful payment at the gateway, then redirect back to merchant."""
-    payment = _PAYMENTS.get(payment_id)
+    payment = repo.get_payment(payment_id)
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
 
@@ -636,6 +636,10 @@ async def mock_return(payment_id: str, order_id: str = "", cancelled: str = ""):
 
     # Mock payments are already marked paid above; use the same authoritative
     # confirmation path as production rather than maintaining a second flow.
+    payment = repo.get_payment(payment_id)
+    if not payment:
+        return HTMLResponse("<h1>Unknown payment</h1>", status_code=404)
+    oid = order_id or payment["order_id"]
     try:
         confirm = await confirm_order(ConfirmOrderRequest(order_id=oid, payment_id=payment_id))
     except HTTPException as exc:
