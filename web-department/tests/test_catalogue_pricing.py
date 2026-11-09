@@ -76,3 +76,33 @@ def test_checkout_rejects_invalid_published_prices(tmp_path, price):
             items=[{"id": "tea", "qty": 1}],
             generated_sites_dir=tmp_path,
         )
+
+
+def test_checkout_rejects_prices_outside_database_integer_range(tmp_path):
+    _publish_catalogue(
+        tmp_path,
+        "shop_1",
+        [{"id": "expensive", "name": "Expensive Item", "price": 21474836.48}],
+    )
+
+    with pytest.raises(CatalogueError, match="price is invalid"):
+        canonicalize_cart(
+            shop_id="shop_1",
+            items=[{"id": "expensive", "qty": 1}],
+            generated_sites_dir=tmp_path,
+        )
+
+
+def test_checkout_rejects_total_outside_database_integer_range(tmp_path):
+    _publish_catalogue(
+        tmp_path,
+        "shop_1",
+        [{"id": "expensive", "name": "Expensive Item", "price": 10000000}],
+    )
+
+    with pytest.raises(CatalogueError, match="Cart total exceeds"):
+        canonicalize_cart(
+            shop_id="shop_1",
+            items=[{"id": "expensive", "qty": 300}],
+            generated_sites_dir=tmp_path,
+        )
