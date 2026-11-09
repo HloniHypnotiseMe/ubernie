@@ -87,6 +87,11 @@ with ThreadPoolExecutor(max_workers=2) as pool:
     results = list(pool.map(lambda fn: fn(), [race_paid, race_cancelled]))
 assert results.count("conflict") == 1, results
 assert repo.get_payment("payment-race")["status"] in {"paid", "cancelled"}
+
+create("order-expired", "payment-expired")
+expired = repo.mark_payment_cancelled("payment-expired", status="expired")
+assert expired["status"] == "expired"
+assert repo.mark_payment_cancelled("payment-expired", status="expired")["status"] == "expired"
 """
     env = os.environ.copy()
     env["ENVIRONMENT"] = "development"
