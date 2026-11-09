@@ -130,3 +130,15 @@ def test_checkout_endpoint_uses_server_catalogue_and_server_merchant_identity():
     assert "merchant_id = f\"merchant_{req.shop_id}\"" in handler
     assert "sum(i.price * i.qty for i in req.items)" not in handler
     assert "items=canonical_items" in handler
+
+
+def test_webhook_uses_currency_check_and_monotonic_state_transitions():
+    source = (ROOT / "api.py").read_text()
+    start = source.index("async def remotepay_webhook(")
+    end = source.index("\n\n@app.get(\"/api/payments/{payment_id}\")", start)
+    handler = source[start:end]
+    assert 'req.currency.upper() != payment["currency"].upper()' in handler
+    assert "repo.mark_payment_paid(req.payment_id)" in handler
+    assert "repo.mark_order_paid(payment[\"order_id\"], req.payment_id)" in handler
+    assert "repo.mark_payment_cancelled(req.payment_id, status=target_status)" in handler
+    assert 'repo.update_order_status(payment["order_id"], status="paid"' not in handler
