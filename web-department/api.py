@@ -40,6 +40,7 @@ from db import repositories as repo
 from builder.site_generator import SiteGenerator
 from builder.site_renderer import SiteRenderer
 from integration.remotepay_client import RemotePayClient, RemotePayError
+from integration.catalogue import CatalogueError, canonicalize_cart
 from integration.ubernie_delivery import UbernieDeliveryClient
 from integration.taxai_hook import calculate_vat, record_transaction
 
@@ -276,8 +277,17 @@ async def create_payment(req: CreatePaymentRequest, request: Request):
     if not req.items:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
-    total_rands = sum(i.price * i.qty for i in req.items)
-    total_minor = int(round(total_rands * 100))
+    try:
+        canonical_items, total_minor = canonicalize_cart(
+            shop_id=req.shop_id,
+            items=[item.model_dump() for item in req.items],
+            generated_sites_dir=os.getenv("GENERATED_SITES_DIR", "generated-sites"),
+        )
+    except CatalogueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    # Merchant identity is derived from the published shop, never trusted from checkout input.
+    merchant_id = f"merchant_{req.shop_id}"
 
     delivery_result: Dict[str, Any] | None = None
     if req.delivery_area:
@@ -292,7 +302,7 @@ async def create_payment(req: CreatePaymentRequest, request: Request):
         payment = remotepay.create_payment(
             amount_minor=total_minor,
             description=description,
-            merchant_id=req.merchant_id,
+            merchant_id=merchant_id,
             brand_id="ubernie",
             source_system="c6_web_department",
             customer_reference=req.customer_email,
@@ -317,8 +327,8 @@ async def create_payment(req: CreatePaymentRequest, request: Request):
     repo.create_order(
         order_id=order_id,
         shop_id=req.shop_id,
-        merchant_id=req.merchant_id,
-        items=[i.model_dump() for i in req.items],
+        merchant_id=merchant_id,
+        items=canonical_items,
         total_minor=total_minor,
         delivery=delivery_result,
     )

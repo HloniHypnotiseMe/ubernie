@@ -119,3 +119,14 @@ asyncio.run(main())
         check=False,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_checkout_endpoint_uses_server_catalogue_and_server_merchant_identity():
+    source = (ROOT / "api.py").read_text()
+    start = source.index("async def create_payment(")
+    end = source.index("\n\n@app.post(\"/api/orders/confirm\")", start)
+    handler = source[start:end]
+    assert "canonicalize_cart(" in handler
+    assert "merchant_id = f\"merchant_{req.shop_id}\"" in handler
+    assert "sum(i.price * i.qty for i in req.items)" not in handler
+    assert "items=canonical_items" in handler
