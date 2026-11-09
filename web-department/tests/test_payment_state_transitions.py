@@ -217,3 +217,38 @@ for field in ("transaction_id", "merchant_id", "brand_id", "source_system"):
         check=False,
     )
     assert result.returncode == 0, result.stderr
+
+
+
+def test_webhook_requires_explicit_currency():
+    script = """
+from api import RemotePayWebhookRequest
+from pydantic import ValidationError
+
+try:
+    RemotePayWebhookRequest(
+        payment_id="payment-1",
+        transaction_id="txn-1",
+        merchant_id="merchant-1",
+        brand_id="ubernie",
+        source_system="c6_web_department",
+        status="paid",
+    )
+except ValidationError:
+    pass
+else:
+    raise AssertionError("webhook accepted a missing currency")
+"""
+    env = os.environ.copy()
+    env["ENVIRONMENT"] = "development"
+    env["DATABASE_URL"] = "sqlite:///:memory:"
+    env["REMOTEPAY_MODE"] = "mock"
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=ROOT,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
