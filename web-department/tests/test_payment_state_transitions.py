@@ -120,8 +120,10 @@ api.repo.get_payment = lambda payment_id: {
     "order_id": "order-1",
     "amount_minor": 1000,
     "currency": "ZAR",
+    "provider_reference": "txn-1",
     "status": "pending",
 }
+api.repo.get_order = lambda order_id: {"order_id": order_id, "merchant_id": "merchant-shop-1"}
 api.repo.mark_payment_paid = lambda payment_id: (_ for _ in ()).throw(
     AssertionError("payment state mutated despite currency mismatch")
 )
@@ -133,7 +135,7 @@ class FakeRequest:
 
 try:
     asyncio.run(api.remotepay_webhook(
-        RemotePayWebhookRequest(payment_id="payment-1", status="paid", currency="USD"),
+        RemotePayWebhookRequest(payment_id="payment-1", transaction_id="txn-1", merchant_id="merchant-shop-1", brand_id="ubernie", source_system="c6_web_department", status="paid", currency="USD"),
         FakeRequest(),
     ))
 except HTTPException as exc:
