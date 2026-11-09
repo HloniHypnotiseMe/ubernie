@@ -240,6 +240,21 @@ except ValidationError:
     pass
 else:
     raise AssertionError("webhook accepted a missing currency")
+
+try:
+    RemotePayWebhookRequest(
+        payment_id="payment-1",
+        transaction_id="txn-1",
+        merchant_id="merchant-1",
+        brand_id="ubernie",
+        source_system="c6_web_department",
+        status="paid",
+        currency="ZAR",
+    )
+except ValidationError:
+    pass
+else:
+    raise AssertionError("webhook accepted a missing amount")
 """
     env = os.environ.copy()
     env["ENVIRONMENT"] = "development"
