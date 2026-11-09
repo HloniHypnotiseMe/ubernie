@@ -33,12 +33,20 @@ def test_production_requires_database_url():
 
 @pytest.mark.parametrize(
     "database_url",
-    ["sqlite:///:memory:", "mysql://user:pass@localhost/db"],
+    ["sqlite:///:memory:", "mysql://user:pass@localhost/db", "postgresql://user:pass@localhost/db", "postgresql+psycopg2://user:pass@localhost/db"],
 )
 def test_production_rejects_non_postgres_database_urls(database_url):
     result = _import_engine(environment="production", database_url=database_url)
     assert result.returncode != 0
-    assert "Production DATABASE_URL must use PostgreSQL" in result.stderr
+    assert "Production DATABASE_URL must use postgresql+psycopg://" in result.stderr
+
+
+def test_production_accepts_installed_psycopg_v3_driver():
+    result = _import_engine(
+        environment="production",
+        database_url="postgresql+psycopg://user:pass@localhost/ubernie",
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_development_can_use_sqlite():
