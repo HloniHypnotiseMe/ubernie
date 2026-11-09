@@ -37,6 +37,7 @@ from db.engine import init_db
 from auth.security import hash_password, verify_password, create_access_token
 from auth.dependencies import current_user, require_role
 from db import repositories as repo
+from db.repositories import PaymentStateConflict, OrderStateConflict
 from builder.site_generator import SiteGenerator
 from builder.site_renderer import SiteRenderer
 from integration.remotepay_client import RemotePayClient, RemotePayError
@@ -606,10 +607,13 @@ async def mock_checkout_pay(payment_id: str, request: Request):
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
 
-    # Mark paid in DB
-    paid = repo.mark_payment_paid(payment_id)
-    if paid:
-        repo.update_order_status(paid["order_id"], status="paid", mark_paid=True)
+    # Mark paid with monotonic compare-and-set transitions.
+    try:
+        paid = repo.mark_payment_paid(payment_id)
+        if paid:
+            repo.mark_order_paid(paid["order_id"], payment_id)
+    except (PaymentStateConflict, OrderStateConflict) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     order_id = payment["order_id"]
 
     # Redirect back to the merchant return_url.
@@ -626,7 +630,10 @@ async def mock_checkout_pay(payment_id: str, request: Request):
 async def mock_checkout_cancel(payment_id: str, request: Request):
     """Simulate a cancelled payment."""
     _block_mock_checkout_in_production()
-    repo.mark_payment_cancelled(payment_id)
+    try:
+        repo.mark_payment_cancelled(payment_id)
+    except PaymentStateConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     return RedirectResponse(url=f"/mock-return?payment_id={payment_id}&cancelled=1", status_code=303)
 
 
@@ -723,17 +730,28 @@ async def remotepay_webhook(req: RemotePayWebhookRequest, request: Request):
         raise HTTPException(status_code=404, detail="Payment not found")
     if req.order_id and req.order_id != payment["order_id"]:
         raise HTTPException(status_code=409, detail="Payment/order mismatch")
+    if req.currency.upper() != payment["currency"].upper():
+        raise HTTPException(status_code=409, detail="Payment currency mismatch")
     if req.amount_minor is not None and req.amount_minor != payment["amount_minor"]:
         raise HTTPException(status_code=409, detail="Payment amount mismatch")
 
     status = req.status.lower()
     if status in {"paid", "completed", "success", "succeeded"}:
-        repo.mark_payment_paid(req.payment_id)
-        repo.update_order_status(payment["order_id"], status="paid", payment_id=req.payment_id, mark_paid=True)
+        try:
+            paid = repo.mark_payment_paid(req.payment_id)
+            if not paid:
+                raise HTTPException(status_code=404, detail="Payment not found")
+            repo.mark_order_paid(payment["order_id"], req.payment_id)
+        except (PaymentStateConflict, OrderStateConflict) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         return {"accepted": True, "status": "paid", "payment_id": req.payment_id, "order_id": payment["order_id"]}
     if status in {"cancelled", "canceled", "failed", "expired"}:
-        repo.mark_payment_cancelled(req.payment_id)
-        return {"accepted": True, "status": status, "payment_id": req.payment_id, "order_id": payment["order_id"]}
+        target_status = "cancelled" if status in {"cancelled", "canceled"} else status
+        try:
+            repo.mark_payment_cancelled(req.payment_id, status=target_status)
+        except PaymentStateConflict as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return {"accepted": True, "status": target_status, "payment_id": req.payment_id, "order_id": payment["order_id"]}
     return {"accepted": True, "status": status, "payment_id": req.payment_id, "order_id": payment["order_id"]}
 
 
