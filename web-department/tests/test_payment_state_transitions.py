@@ -62,6 +62,31 @@ except PaymentStateConflict:
     pass
 else:
     raise AssertionError("failed payment regressed to paid")
+
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
+
+create("order-race", "payment-race")
+barrier = Barrier(2)
+
+def race_paid():
+    barrier.wait()
+    try:
+        return repo.mark_payment_paid("payment-race")["status"]
+    except PaymentStateConflict:
+        return "conflict"
+
+def race_cancelled():
+    barrier.wait()
+    try:
+        return repo.mark_payment_cancelled("payment-race")["status"]
+    except PaymentStateConflict:
+        return "conflict"
+
+with ThreadPoolExecutor(max_workers=2) as pool:
+    results = list(pool.map(lambda fn: fn(), [race_paid, race_cancelled]))
+assert results.count("conflict") == 1, results
+assert repo.get_payment("payment-race")["status"] in {"paid", "cancelled"}
 """
     env = os.environ.copy()
     env["ENVIRONMENT"] = "development"
