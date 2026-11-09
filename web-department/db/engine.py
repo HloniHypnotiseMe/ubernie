@@ -15,7 +15,7 @@ from sqlalchemy.pool import StaticPool
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
-_POSTGRES_PREFIXES = ("postgresql://", "postgresql+psycopg://", "postgresql+psycopg2://")
+_POSTGRES_PREFIXES = ("postgresql+psycopg://",)
 
 if ENVIRONMENT == "production":
     if not DATABASE_URL:
@@ -24,7 +24,7 @@ if ENVIRONMENT == "production":
         )
     if not DATABASE_URL.startswith(_POSTGRES_PREFIXES):
         raise RuntimeError(
-            "Production DATABASE_URL must use PostgreSQL; SQLite and other database engines are unsupported"
+            "Production DATABASE_URL must use postgresql+psycopg://; only the installed psycopg v3 driver is supported"
         )
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
