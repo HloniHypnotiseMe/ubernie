@@ -5,7 +5,7 @@ This is the authoritative merchant website-generation and commerce service for U
 ## Production invariants
 
 - ENVIRONMENT=production
-- REMOTEPAY_MODE=live — mock and legacy fallbacks are disabled by the API in production.
+- REMOTEPAY_MODE=live — mock and legacy fallbacks are disabled by the API in production. All mock checkout, mock pay, mock cancel and mock return routes must return 404 in production.
 - JWT_SECRET must be unique and non-default.
 - REMOTEPAY_WEBHOOK_SECRET is mandatory.
 - CORS_ALLOWED_ORIGINS must contain only real Ubernie/C6 origins.
