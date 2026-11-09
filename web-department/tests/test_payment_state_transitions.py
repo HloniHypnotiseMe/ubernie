@@ -135,7 +135,7 @@ class FakeRequest:
 
 try:
     asyncio.run(api.remotepay_webhook(
-        RemotePayWebhookRequest(payment_id="payment-1", transaction_id="txn-1", merchant_id="merchant-shop-1", brand_id="ubernie", source_system="c6_web_department", status="paid", currency="USD"),
+        RemotePayWebhookRequest(payment_id="payment-1", transaction_id="txn-1", merchant_id="merchant-shop-1", brand_id="ubernie", source_system="c6_web_department", status="paid", amount_minor=1000, currency="USD"),
         FakeRequest(),
     ))
 except HTTPException as exc:
@@ -192,6 +192,7 @@ base = {
     "brand_id": "ubernie",
     "source_system": "c6_web_department",
     "status": "paid",
+    "amount_minor": 1000,
     "currency": "ZAR",
 }
 for field in ("transaction_id", "merchant_id", "brand_id", "source_system"):
@@ -233,6 +234,7 @@ try:
         brand_id="ubernie",
         source_system="c6_web_department",
         status="paid",
+        amount_minor=1000,
     )
 except ValidationError:
     pass
