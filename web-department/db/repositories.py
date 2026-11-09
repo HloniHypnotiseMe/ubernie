@@ -247,6 +247,7 @@ def create_payment_record(**kw) -> Dict[str, Any]:
             order_id=kw["order_id"],
             amount_minor=kw["amount_minor"],
             provider=kw["provider"],
+            provider_reference=kw.get("provider_reference"),
             payment_url=kw.get("payment_url"),
             status=kw.get("status", "pending"),
         )
