@@ -329,13 +329,9 @@ async def create_payment(req: CreatePaymentRequest, request: Request):
         payment["payment_url"] = f"{str(request.base_url).rstrip('/')}{payment['payment_url']}"
 
     transaction_id = payment.get("transaction_id")
-    if not transaction_id:
-        raise HTTPException(
-            status_code=502,
-            detail="RemotePay response is missing transaction identity; reconciliation is required",
-        )
 
-    # Persist order + payment records
+    # Persist order + payment records before reporting an incomplete provider identity,
+    # so a created provider payment is not lost from the local reconciliation trail.
     repo.create_order(
         order_id=order_id,
         shop_id=req.shop_id,
@@ -352,6 +348,12 @@ async def create_payment(req: CreatePaymentRequest, request: Request):
         provider_reference=transaction_id,
         payment_url=payment["payment_url"],
     )
+
+    if not transaction_id:
+        raise HTTPException(
+            status_code=502,
+            detail="RemotePay response is missing transaction identity; payment was recorded for reconciliation",
+        )
 
     return {
         "order_id": order_id,
