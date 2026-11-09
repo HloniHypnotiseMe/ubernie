@@ -156,3 +156,64 @@ else:
         check=False,
     )
     assert result.returncode == 0, result.stderr
+
+
+
+def test_webhook_rejects_mismatched_remote_pay_identity_before_mutation(tmp_path):
+    script = """
+import asyncio
+import api
+from api import RemotePayWebhookRequest
+from fastapi import HTTPException
+
+api.ENVIRONMENT = "development"
+api.repo.get_payment = lambda payment_id: {
+    "payment_id": payment_id,
+    "order_id": "order-1",
+    "amount_minor": 1000,
+    "currency": "ZAR",
+    "provider_reference": "txn-1",
+    "status": "pending",
+}
+api.repo.get_order = lambda order_id: {"order_id": order_id, "merchant_id": "merchant-shop-1"}
+api.repo.mark_payment_paid = lambda payment_id: (_ for _ in ()).throw(
+    AssertionError("payment state mutated despite identity mismatch")
+)
+
+class FakeRequest:
+    headers = {}
+    async def body(self):
+        return b"{}"
+
+base = {
+    "payment_id": "payment-1",
+    "transaction_id": "txn-1",
+    "merchant_id": "merchant-shop-1",
+    "brand_id": "ubernie",
+    "source_system": "c6_web_department",
+    "status": "paid",
+    "currency": "ZAR",
+}
+for field in ("transaction_id", "merchant_id", "brand_id", "source_system"):
+    payload = dict(base)
+    payload[field] = "wrong-identity"
+    try:
+        asyncio.run(api.remotepay_webhook(RemotePayWebhookRequest(**payload), FakeRequest()))
+    except HTTPException as exc:
+        assert exc.status_code == 409, (field, exc.status_code)
+    else:
+        raise AssertionError(f"{field} mismatch was accepted")
+"""
+    env = os.environ.copy()
+    env["ENVIRONMENT"] = "development"
+    env["DATABASE_URL"] = f"sqlite:///{tmp_path / 'webhook-identity.db'}"
+    env["REMOTEPAY_MODE"] = "mock"
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=ROOT,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
