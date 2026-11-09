@@ -517,7 +517,8 @@ async def generate_site(shop_id: str, req: GenerateSiteRequest, user: dict = Dep
 
 @app.get("/mock-checkout/{payment_id}", response_class=HTMLResponse)
 async def mock_checkout_page(payment_id: str, request: Request):
-    _block_mock_checkout_in_production()\n    """Simulated SimplyBlu hosted checkout page."""
+    """Simulated SimplyBlu hosted checkout page."""
+    _block_mock_checkout_in_production()
     payment = repo.get_payment(payment_id)
     if not payment:
         return HTMLResponse(
@@ -589,7 +590,8 @@ async def mock_checkout_page(payment_id: str, request: Request):
 
 @app.post("/mock-checkout/{payment_id}/pay")
 async def mock_checkout_pay(payment_id: str, request: Request):
-    _block_mock_checkout_in_production()\n    """Simulate a successful payment at the gateway, then redirect back to merchant."""
+    """Simulate a successful payment at the gateway, then redirect back to merchant."""
+    _block_mock_checkout_in_production()
     payment = repo.get_payment(payment_id)
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
@@ -612,20 +614,22 @@ async def mock_checkout_pay(payment_id: str, request: Request):
 
 @app.post("/mock-checkout/{payment_id}/cancel")
 async def mock_checkout_cancel(payment_id: str, request: Request):
-    _block_mock_checkout_in_production()\n    """Simulate a cancelled payment."""
+    """Simulate a cancelled payment."""
+    _block_mock_checkout_in_production()
     repo.mark_payment_cancelled(payment_id)
     return RedirectResponse(url=f"/mock-return?payment_id={payment_id}&cancelled=1", status_code=303)
 
 
 @app.get("/mock-return", response_class=HTMLResponse)
 async def mock_return(payment_id: str, order_id: str = "", cancelled: str = ""):
-    _block_mock_checkout_in_production()\n    """
+    """
     Merchant return URL — where the gateway sends the customer after payment.
 
     In production, this would be a page on the shop's site (thank-you.html) that
     reads the payment_id from the URL and calls /api/orders/confirm.
     For this mock, we redirect straight to that behavior.
     """
+    _block_mock_checkout_in_production()
     if cancelled:
         return HTMLResponse(f"""
             <!DOCTYPE html><html><head><title>Cancelled</title>
