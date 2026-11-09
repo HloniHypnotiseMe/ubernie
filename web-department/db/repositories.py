@@ -17,6 +17,14 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+class PaymentStateConflict(RuntimeError):
+    """A provider event attempted to move a payment out of a terminal state."""
+
+
+class OrderStateConflict(RuntimeError):
+    """A payment event attempted to regress or mismatch an order state."""
+
+
 import re
 
 def _make_shop_id(business_name: str) -> str:
@@ -239,6 +247,7 @@ def create_payment_record(**kw) -> Dict[str, Any]:
             order_id=kw["order_id"],
             amount_minor=kw["amount_minor"],
             provider=kw["provider"],
+            provider_reference=kw.get("provider_reference"),
             payment_url=kw.get("payment_url"),
             status=kw.get("status", "pending"),
         )
@@ -261,17 +270,37 @@ def get_payment(payment_id: str) -> Optional[Dict[str, Any]]:
         s.close()
 
 
-def mark_payment_paid(payment_id: str) -> Optional[Dict[str, Any]]:
+def _transition_payment(payment_id: str, target_status: str) -> Optional[Dict[str, Any]]:
+    if target_status not in {"paid", "cancelled", "failed", "expired"}:
+        raise ValueError("Unsupported terminal payment status")
+
     s = SessionLocal()
     try:
-        p = s.get(Payment, payment_id)
-        if not p:
+        values: Dict[str, Any] = {"status": target_status}
+        if target_status == "paid":
+            values["paid_at"] = _now()
+
+        # Compare-and-set: only a pending payment can move to a terminal state.
+        changed = (
+            s.query(Payment)
+            .filter(Payment.id == payment_id, Payment.status == "pending")
+            .update(values, synchronize_session=False)
+        )
+        if changed:
+            s.commit()
+            payment = s.get(Payment, payment_id)
+            return _payment_to_dict(payment) if payment else None
+
+        s.rollback()
+        payment = s.get(Payment, payment_id)
+        if not payment:
             return None
-        p.status = "paid"
-        p.paid_at = _now()
-        s.commit()
-        s.refresh(p)
-        return _payment_to_dict(p)
+        if payment.status == target_status:
+            # Duplicate delivery of the same provider event is idempotent.
+            return _payment_to_dict(payment)
+        raise PaymentStateConflict(
+            f"Payment {payment_id} is already {payment.status}; refusing transition to {target_status}"
+        )
     except Exception:
         s.rollback()
         raise
@@ -279,16 +308,48 @@ def mark_payment_paid(payment_id: str) -> Optional[Dict[str, Any]]:
         s.close()
 
 
-def mark_payment_cancelled(payment_id: str) -> Optional[Dict[str, Any]]:
+def mark_payment_paid(payment_id: str) -> Optional[Dict[str, Any]]:
+    return _transition_payment(payment_id, "paid")
+
+
+def mark_payment_cancelled(payment_id: str, status: str = "cancelled") -> Optional[Dict[str, Any]]:
+    if status not in {"cancelled", "failed", "expired"}:
+        raise ValueError("Cancellation status must be cancelled, failed or expired")
+    return _transition_payment(payment_id, status)
+
+
+def mark_order_paid(order_id: str, payment_id: str) -> Optional[Dict[str, Any]]:
     s = SessionLocal()
     try:
-        p = s.get(Payment, payment_id)
-        if not p:
+        changed = (
+            s.query(Order)
+            .filter(Order.id == order_id, Order.status == "awaiting_payment")
+            .update(
+                {"status": "paid", "payment_id": payment_id, "paid_at": _now()},
+                synchronize_session=False,
+            )
+        )
+        if changed:
+            s.commit()
+            order = s.get(Order, order_id)
+            return _order_to_dict(order) if order else None
+
+        s.rollback()
+        order = s.get(Order, order_id)
+        if not order:
             return None
-        p.status = "cancelled"
-        s.commit()
-        s.refresh(p)
-        return _payment_to_dict(p)
+        if (
+            order.status in {"paid", "confirmed", "confirmed_pending_dispatch", "dispatched", "delivered"}
+            and order.payment_id == payment_id
+        ):
+            # Duplicate paid event must never regress a later order lifecycle state.
+            return _order_to_dict(order)
+        raise OrderStateConflict(
+            f"Order {order_id} is already {order.status} or references a different payment"
+        )
+    except Exception:
+        s.rollback()
+        raise
     finally:
         s.close()
 

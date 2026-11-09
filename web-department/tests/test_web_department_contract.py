@@ -130,3 +130,32 @@ def test_checkout_endpoint_uses_server_catalogue_and_server_merchant_identity():
     assert "merchant_id = f\"merchant_{req.shop_id}\"" in handler
     assert "sum(i.price * i.qty for i in req.items)" not in handler
     assert "items=canonical_items" in handler
+
+
+def test_webhook_uses_currency_check_and_monotonic_state_transitions():
+    source = (ROOT / "api.py").read_text()
+    start = source.index("async def remotepay_webhook(")
+    end = source.index("\n\n@app.get(\"/api/payments/{payment_id}\")", start)
+    handler = source[start:end]
+    assert 'req.currency.upper() != payment["currency"].upper()' in handler
+    assert "repo.mark_payment_paid(req.payment_id)" in handler
+    assert "repo.mark_order_paid(payment[\"order_id\"], req.payment_id)" in handler
+    assert "repo.mark_payment_cancelled(req.payment_id, status=target_status)" in handler
+    assert 'repo.update_order_status(payment["order_id"], status="paid"' not in handler
+
+
+def test_checkout_persists_remote_pay_transaction_identity():
+    source = (ROOT / "api.py").read_text()
+    start = source.index("async def create_payment(")
+    end = source.index("\n\n@app.post(\"/api/orders/confirm\")", start)
+    handler = source[start:end]
+    assert 'transaction_id = payment.get("transaction_id")' in handler
+    assert "provider_reference=transaction_id" in handler
+
+    webhook_start = source.index("async def remotepay_webhook(")
+    webhook_end = source.index("\n\n@app.get(\"/api/payments/{payment_id}\")", webhook_start)
+    webhook = source[webhook_start:webhook_end]
+    assert 'req.transaction_id != payment["provider_reference"]' in webhook
+    assert 'req.merchant_id != order["merchant_id"]' in webhook
+    assert 'req.brand_id != "ubernie"' in webhook
+    assert 'req.source_system != "c6_web_department"' in webhook
