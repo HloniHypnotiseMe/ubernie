@@ -142,7 +142,11 @@ class ConfirmOrderRequest(BaseModel):
 
 
 class RemotePayWebhookRequest(BaseModel):
-    payment_id: str
+    payment_id: str = Field(min_length=1)
+    transaction_id: str = Field(min_length=1)
+    merchant_id: str = Field(min_length=1)
+    brand_id: str = Field(min_length=1)
+    source_system: str = Field(min_length=1)
     order_id: str | None = None
     status: str
     amount_minor: int | None = None
@@ -324,6 +328,13 @@ async def create_payment(req: CreatePaymentRequest, request: Request):
     if payment.get("provider_path") == "mock" and payment.get("payment_url", "").startswith("/"):
         payment["payment_url"] = f"{str(request.base_url).rstrip('/')}{payment['payment_url']}"
 
+    transaction_id = payment.get("transaction_id")
+    if not transaction_id:
+        raise HTTPException(
+            status_code=502,
+            detail="RemotePay response is missing transaction identity; reconciliation is required",
+        )
+
     # Persist order + payment records
     repo.create_order(
         order_id=order_id,
@@ -338,6 +349,7 @@ async def create_payment(req: CreatePaymentRequest, request: Request):
         order_id=order_id,
         amount_minor=total_minor,
         provider=payment["provider_path"],
+        provider_reference=transaction_id,
         payment_url=payment["payment_url"],
     )
 
@@ -730,6 +742,17 @@ async def remotepay_webhook(req: RemotePayWebhookRequest, request: Request):
         raise HTTPException(status_code=404, detail="Payment not found")
     if req.order_id and req.order_id != payment["order_id"]:
         raise HTTPException(status_code=409, detail="Payment/order mismatch")
+    order = repo.get_order(payment["order_id"])
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if not payment.get("provider_reference"):
+        raise HTTPException(status_code=409, detail="Payment transaction identity is missing; reconciliation is required")
+    if req.transaction_id != payment["provider_reference"]:
+        raise HTTPException(status_code=409, detail="Payment transaction mismatch")
+    if req.merchant_id != order["merchant_id"]:
+        raise HTTPException(status_code=409, detail="Payment merchant mismatch")
+    if req.brand_id != "ubernie" or req.source_system != "c6_web_department":
+        raise HTTPException(status_code=409, detail="Payment brand/source mismatch")
     if req.currency.upper() != payment["currency"].upper():
         raise HTTPException(status_code=409, detail="Payment currency mismatch")
     if req.amount_minor is not None and req.amount_minor != payment["amount_minor"]:
