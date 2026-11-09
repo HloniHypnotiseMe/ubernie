@@ -14,6 +14,7 @@ class CatalogueError(ValueError):
 
 _SHOP_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 _MAX_QUANTITY = 1000
+_MAX_TOTAL_MINOR = 2_147_483_647
 
 
 def canonicalize_cart(
@@ -54,6 +55,8 @@ def canonicalize_cart(
             if not price.is_finite() or price < 0:
                 raise InvalidOperation
             price_minor = int((price * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+            if price_minor > _MAX_TOTAL_MINOR:
+                raise InvalidOperation
         except (InvalidOperation, ValueError, TypeError) as exc:
             raise CatalogueError(f"Published price is invalid for product {product_id}") from exc
         products[product_id] = (name, price_minor)
@@ -73,6 +76,8 @@ def canonicalize_cart(
 
         name, price_minor = products[product_id]
         total_minor += price_minor * quantity
+        if total_minor > _MAX_TOTAL_MINOR:
+            raise CatalogueError("Cart total exceeds the supported payment amount")
         canonical_items.append({
             "id": product_id,
             "name": name,
