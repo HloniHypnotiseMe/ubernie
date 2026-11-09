@@ -149,7 +149,7 @@ class RemotePayWebhookRequest(BaseModel):
     source_system: str = Field(min_length=1)
     order_id: str | None = None
     status: str
-    amount_minor: int | None = None
+    amount_minor: int = Field(gt=0)
     currency: str = Field(min_length=3, max_length=3)
 
 
@@ -757,7 +757,7 @@ async def remotepay_webhook(req: RemotePayWebhookRequest, request: Request):
         raise HTTPException(status_code=409, detail="Payment brand/source mismatch")
     if req.currency.upper() != payment["currency"].upper():
         raise HTTPException(status_code=409, detail="Payment currency mismatch")
-    if req.amount_minor is not None and req.amount_minor != payment["amount_minor"]:
+    if req.amount_minor != payment["amount_minor"]:
         raise HTTPException(status_code=409, detail="Payment amount mismatch")
 
     status = req.status.lower()
