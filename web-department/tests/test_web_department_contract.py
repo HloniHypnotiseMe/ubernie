@@ -1,4 +1,7 @@
 import ast
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,3 +79,43 @@ def test_mock_checkout_routes_are_blocked_in_production():
             for node in ast.walk(route)
         )
         assert calls_guard, f"{route_name} must block mock checkout in production"
+
+
+def test_mock_checkout_handlers_return_404_in_production():
+    script = """
+import asyncio
+import api
+from fastapi import HTTPException
+
+api.ENVIRONMENT = "production"
+
+async def main():
+    calls = [
+        api.mock_checkout_page("payment-test", None),
+        api.mock_checkout_pay("payment-test", None),
+        api.mock_checkout_cancel("payment-test", None),
+        api.mock_return("payment-test"),
+    ]
+    for call in calls:
+        try:
+            await call
+        except HTTPException as exc:
+            assert exc.status_code == 404, exc.status_code
+        else:
+            raise AssertionError("A mock checkout route was reachable in production mode")
+
+asyncio.run(main())
+"""
+    env = os.environ.copy()
+    env["ENVIRONMENT"] = "development"
+    env["DATABASE_URL"] = "sqlite:///:memory:"
+    env["REMOTEPAY_MODE"] = "mock"
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=ROOT,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
