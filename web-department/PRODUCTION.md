@@ -9,7 +9,7 @@ This is the authoritative merchant website-generation and commerce service for U
 - JWT_SECRET must be unique and non-default.
 - REMOTEPAY_WEBHOOK_SECRET is mandatory.
 - CORS_ALLOWED_ORIGINS must contain only real Ubernie/C6 origins.
-- PostgreSQL is the production database; SQLite is development-only.
+- PostgreSQL is the production database; SQLite is development-only. Set `DATABASE_URL` using `postgresql+psycopg://USER:PASSWORD@HOST:5432/ubernie`; the production image installs psycopg v3 (`psycopg[binary]`) and deliberately rejects generic `postgresql://` and `postgresql+psycopg2://` URLs.
 - Generated sites live on a persistent volume and are served through the reverse proxy.
 - Browser redirects are not payment proof. Only a verified RemotePay webhook marks a payment paid.
 - /api/orders/confirm refuses to confirm an unpaid, mismatched, or incorrectly valued payment.
