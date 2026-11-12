@@ -65,7 +65,7 @@ These are existing code/documentation surfaces, not proof that every feature is 
 
 | Capability | Registered provider/source | Intended UBERNIE use | Decision |
 |---|---|---|---|
-| Web scraping / extraction | Scrapling (C6-Os provider registry) | HTTP/browser-aware collection and extraction | Inspect exact repository identity, fork status, source commit, licence and dependency closure before extraction |
+| Web scraping / extraction | `HloniHypnotiseMe/Scrapling` (controlled fork) | Scrapling HTML parsing and Schema.org business extraction | BSD 3-Clause; pinned `scrapling==0.4.15`; UBERNIE controls HTTP fetch, robots checks, SSRF checks and evidence capture |
 | Browser automation | HeadlessX | Dynamic pages, browser-rendered extraction and controlled browser jobs | Candidate only; AGPL-3.0 creates network-copyleft obligations that require an explicit legal/product decision before incorporation |
 | Page understanding / browser agent | Alibaba Page-Agent | Optional interactive page understanding for permitted workflows | MIT; not a crawler replacement; extract only if a real page-agent use case justifies it |
 | Workflow automation | C6-controlled n8n fork | Scheduling, retries, notifications and business workflow triggers | Reuse workflow patterns or a narrow adapter; do not couple core ingestion correctness to a visual workflow |
