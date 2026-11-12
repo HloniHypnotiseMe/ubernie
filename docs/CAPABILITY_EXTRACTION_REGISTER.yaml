@@ -13,6 +13,16 @@ status_semantics:
   live: "Production runtime and external routing directly verified."
 extractions: []
 candidates:
+  - id: agent_crm_evidence_work_queue
+    capability: evidence_led_business_enrichment
+    source_repository: "HloniHypnotiseMe/crm"
+    source_branch: "release"
+    source_type: controlled_fork
+    source_commit: null
+    licence: "MIT; preserve Comp AI copyright and licence notice"
+    intended_use: "Extract narrowly scoped evidence ledger, company-enrichment workflow patterns, durable work-queue/lease patterns and identity-matching skills"
+    status: inspected
+    blocker: "Inspect exact source files and dependency closure; prove no dependency on unrelated CRM runtime; adapt to UBERNIE business entities and POPIA controls."
   - id: scrapling_web_extraction
     capability: web_scraping
     source_repository: "Scrapling/Scrapling"
@@ -23,7 +33,7 @@ candidates:
     licence: unresolved
     intended_use: "Public business-page crawling and structured extraction"
     status: registered
-    blocker: "Resolve canonical repository identity, controlled-fork location, exact commit, licence and dependency closure before extraction."
+    blocker: "Resolve canonical repository identity, controlled-fork location, exact commit, licence and dependency closure before extraction. Current GitHub file lookup against the registered owner/path returned NOT_FOUND."
   - id: headlessx_browser_extraction
     capability: browser_automation
     source_repository: "saifyxpro/HeadlessX"
@@ -46,9 +56,27 @@ candidates:
     source_type: controlled_fork
     source_commit: "137c64f5b7a5a1442738733a22dbf0892985eda7"
     licence: unresolved
-    intended_use: "Scheduling, retry orchestration and business event workflows"
+    intended_use: "Scheduling, retries and business event workflows"
     status: registered
     blocker: "Inspect fork licence, workflow deployment and runtime contract; keep core ingestion state in UBERNIE."
+  - id: n8n_workflow_library
+    capability: workflow_templates
+    source_repository: "HloniHypnotiseMe/n8n-workflows"
+    source_type: controlled_fork
+    source_commit: "94007c1445d9258a7da116646b79473e7c7c3282"
+    licence: "MIT stated in repository README; verify exact fork LICENSE before copying"
+    intended_use: "Reuse selected workflow JSON patterns for source scheduling, notifications and review handoffs"
+    status: inspected
+    blocker: "Inspect candidate workflow JSON, credentials assumptions, node versions and source notices; workflow collection is not a crawler engine."
+  - id: ghost_osint_crm
+    capability: entity_relationship_research_patterns
+    source_repository: "HloniHypnotiseMe/GHOST-osint-crm"
+    source_type: controlled_fork
+    source_commit: null
+    licence: "CC BY-NC-SA 4.0"
+    intended_use: "Reference only for conceptual entity graph and investigation workflow ideas"
+    status: excluded_from_commercial_extraction
+    blocker: "NonCommercial restriction prevents direct commercial incorporation without separate permission. Do not copy code or database content into UBERNIE."
   - id: meilisearch_directory_search
     capability: directory_search
     source_repository: "Existing UBERNIE integration"
