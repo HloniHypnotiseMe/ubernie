@@ -1,0 +1,60 @@
+schema_version: "1.0"
+product: ubernie
+legal_owner: "RemotePay Fintech Services"
+public_identity: "UBERNIE"
+branch: "feature/ubernie-intelligence-acquisition"
+status_semantics:
+  registered: "Listed in a capability registry; not proof of install or operation."
+  inspected: "Source code and licence inspected."
+  selected: "Approved for a defined UBERNIE requirement."
+  extracted: "Required component copied/adapted into UBERNIE with provenance."
+  works: "Execution demonstrated by tests."
+  verified: "Evidence recorded for the acceptance criteria."
+  live: "Production runtime and external routing directly verified."
+extractions: []
+candidates:
+  - id: scrapling_web_extraction
+    capability: web_scraping
+    source_repository: "Scrapling/Scrapling"
+    source_as_registered_in_c6_arsenal: "https://github.com/Scrapling/Scrapling"
+    source_type: upstream_candidate
+    fork_status: unresolved
+    source_commit: null
+    licence: unresolved
+    intended_use: "Public business-page crawling and structured extraction"
+    status: registered
+    blocker: "Resolve canonical repository identity, controlled-fork location, exact commit, licence and dependency closure before extraction."
+  - id: headlessx_browser_extraction
+    capability: browser_automation
+    source_repository: "saifyxpro/HeadlessX"
+    source_commit: null
+    licence: "AGPL-3.0; headfox-js component separately states MPL-2.0"
+    intended_use: "Browser-rendered extraction where HTTP parsing is insufficient"
+    status: inspected
+    blocker: "AGPL-3.0 network-copyleft implications require explicit legal/product approval; avoid importing the whole service."
+  - id: page_agent_page_understanding
+    capability: page_understanding
+    source_repository: "alibaba/page-agent"
+    source_commit: null
+    licence: "MIT"
+    intended_use: "Optional DOM/page understanding for controlled interactive tasks"
+    status: inspected
+    blocker: "Not a crawler; select only if a defined page-agent task requires it."
+  - id: n8n_workflow_automation
+    capability: workflow_automation
+    source_repository: "HloniHypnotiseMe/n8n"
+    source_type: controlled_fork
+    source_commit: "137c64f5b7a5a1442738733a22dbf0892985eda7"
+    licence: unresolved
+    intended_use: "Scheduling, retry orchestration and business event workflows"
+    status: registered
+    blocker: "Inspect fork licence, workflow deployment and runtime contract; keep core ingestion state in UBERNIE."
+  - id: meilisearch_directory_search
+    capability: directory_search
+    source_repository: "Existing UBERNIE integration"
+    source_type: internal
+    source_commit: null
+    licence: "Existing dependency; version and licence to verify from lockfile"
+    intended_use: "Index approved business records for search"
+    status: registered
+    blocker: "Verify actual implementation, version, index lifecycle and production health."
