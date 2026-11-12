@@ -38,3 +38,12 @@ From this directory:
 Then prove the real chain separately:
 
 generated site → RemotePay payment link → SimplyBlu payment → verified webhook → payment PAID → order CONFIRMED → dispatch → POD/delivery
+
+## Business intelligence intake (initial foundation)
+
+- `POST /api/intelligence/sources` — admin-only source registration. Collection is disabled by default; enabling requires recorded terms, permission and robots review.
+- `POST /api/intelligence/jobs` — admin-only durable queue record. This endpoint does not fetch a page; a separately deployed worker is still required.
+- `POST /api/intelligence/candidates` — admin-only evidence-backed business candidate intake. Candidate records remain private and pending review.
+- `POST /api/intelligence/candidates/{id}/review` — admin-only approve/reject decision. Approval records a review decision but does not publish a public directory listing.
+
+The initial implementation is an intake/evidence foundation, not yet a production crawler. Before enabling any source, confirm the source's terms, lawful collection basis, robots/access policy and rate limit. A future worker must additionally enforce DNS/IP SSRF protections, per-host throttling, robots policy at fetch time, bounded response sizes and safe content parsing.
