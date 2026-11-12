@@ -42,8 +42,9 @@ generated site → RemotePay payment link → SimplyBlu payment → verified web
 ## Business intelligence intake (initial foundation)
 
 - `POST /api/intelligence/sources` — admin-only source registration. Collection is disabled by default; enabling requires recorded terms, permission and robots review.
-- `POST /api/intelligence/jobs` — admin-only durable queue record. This endpoint does not fetch a page; a separately deployed worker is still required.
+- `POST /api/intelligence/jobs` — admin-only durable queue record.
+- `POST /api/intelligence/jobs/{id}/run` — admin-only single-job execution using the controlled HTTP fetch worker and Scrapling parser.
 - `POST /api/intelligence/candidates` — admin-only evidence-backed business candidate intake. Candidate records remain private and pending review.
 - `POST /api/intelligence/candidates/{id}/review` — admin-only approve/reject decision. Approval records a review decision but does not publish a public directory listing.
 
-The initial implementation is an intake/evidence foundation, not yet a production crawler. Before enabling any source, confirm the source's terms, lawful collection basis, robots/access policy and rate limit. A future worker must additionally enforce DNS/IP SSRF protections, per-host throttling, robots policy at fetch time, bounded response sizes and safe content parsing.
+The first controlled fetch worker is implemented, but the system is not yet a production-scale crawler or scheduled service. It uses HTTPS-only source URLs, rejects non-public IPs, checks robots.txt, blocks redirects, limits HTML responses to 2 MiB and parses explicit Schema.org business entities with Scrapling. Execution is currently admin-triggered and sequential. Before production-scale operation, add a durable distributed lease/queue, DNS pinning to close rebinding races, persistent per-host rate limiting, worker concurrency controls, monitoring and deployment verification. Confirm each source's terms and lawful collection basis before enabling it.
