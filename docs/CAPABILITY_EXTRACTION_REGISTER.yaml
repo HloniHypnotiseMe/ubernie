@@ -18,11 +18,12 @@ candidates:
     source_repository: "HloniHypnotiseMe/crm"
     source_branch: "release"
     source_type: controlled_fork
-    source_commit: null
+    source_commit: "627b8a4da72f4b4014157339f4183bc60b3bb6af"
     licence: "MIT; preserve Comp AI copyright and licence notice"
     intended_use: "Extract narrowly scoped evidence ledger, company-enrichment workflow patterns, durable work-queue/lease patterns and identity-matching skills"
     status: inspected
-    blocker: "Inspect exact source files and dependency closure; prove no dependency on unrelated CRM runtime; adapt to UBERNIE business entities and POPIA controls."
+    extraction_note: "Evidence-led review, durable work-queue and fail-closed matching patterns were adapted into UBERNIE-owned Python/SQLAlchemy modules; no CRM runtime or source files copied."
+    blocker: "Continue selective extraction only where source/dependency review justifies it; preserve MIT notice for any future copied code."
   - id: scrapling_web_extraction
     capability: web_scraping
     source_repository: "Scrapling/Scrapling"
