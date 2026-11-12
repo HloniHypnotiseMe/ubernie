@@ -45,8 +45,9 @@ def _normalise(value: str | None) -> str:
     return re.sub(r"[^a-z0-9]+", " ", (value or "").casefold()).strip()
 
 
-def _dedupe_key(name: str, city: str | None, province: str | None) -> str:
-    identity = "|".join((_normalise(name), _normalise(city), _normalise(province)))
+def _dedupe_key(name: str, city: str | None, province: str | None, website: str | None) -> str:
+    website_host = urlparse(website).hostname.lower() if website else ""
+    identity = "|".join((_normalise(name), _normalise(city), _normalise(province), website_host))
     return hashlib.sha256(identity.encode("utf-8")).hexdigest()
 
 
@@ -100,7 +101,7 @@ def ingest_candidate(db: Session, *, source_id: str, source_url: str,
     name = business_name.strip()
     if not name:
         raise ValueError("business_name is required")
-    key = _dedupe_key(name, created_fields.get("city"), created_fields.get("province"))
+    key = _dedupe_key(name, created_fields.get("city"), created_fields.get("province"), created_fields.get("website"))
     existing = db.scalar(select(BusinessCandidate).where(BusinessCandidate.dedupe_key == key))
     if existing is not None:
         return existing, True
