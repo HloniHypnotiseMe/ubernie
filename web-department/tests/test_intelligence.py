@@ -153,3 +153,19 @@ def test_same_name_same_city_different_official_domains_are_not_merged(db):
     assert duplicate1 is False
     assert duplicate2 is False
     assert first.id != second.id
+
+
+def test_source_rejects_private_ip_literal(db):
+    with pytest.raises(ValueError, match="Non-public IP"):
+        create_source(
+            db,
+            name="Private target",
+            base_url="https://127.0.0.1",
+            purpose="Must not target local services",
+            terms_reviewed=True,
+            collection_permitted=True,
+            robots_reviewed=True,
+            enabled=True,
+            requests_per_minute=1,
+            created_by="admin-1",
+        )
