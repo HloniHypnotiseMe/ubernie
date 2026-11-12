@@ -180,7 +180,7 @@ def _session():
 @router.post("/sources", status_code=201)
 def register_source(body: SourceRequest, user: dict = Depends(admin_user), db: Session = Depends(_session)):
     try:
-        source = create_source(db, **body.model_dump(), created_by=user["user_id"])
+        payload = body.model_dump()\n        payload["base_url"] = str(payload["base_url"])\n        source = create_source(db, **payload, created_by=user["user_id"])
     except (ValueError, IntegrityError) as exc:
         db.rollback()
         raise HTTPException(status_code=422, detail=str(exc))
