@@ -7,7 +7,7 @@ def test_extracts_explicit_schema_org_business_and_address():
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "PlumbingService",
+      "@type": "LocalBusiness",
       "name": "Alpha Plumbing",
       "url": "https://alpha.example.za/",
       "telephone": "+27 11 000 0000",
