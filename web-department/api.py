@@ -48,7 +48,10 @@ logging.basicConfig(level=logging.INFO)
 init_db()  # create tables if not exist
 log = logging.getLogger("web-department.api")
 
-app = FastAPI(title="Ubernie Web Department", version="0.3.0")\n\nfrom intelligence import router as intelligence_router\napp.include_router(intelligence_router)
+app = FastAPI(title="Ubernie Web Department", version="0.3.0")
+
+from intelligence import router as intelligence_router
+app.include_router(intelligence_router)
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
 ALLOWED_ORIGINS = [x.strip() for x in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if x.strip()]
