@@ -169,3 +169,19 @@ def test_source_rejects_private_ip_literal(db):
             requests_per_minute=1,
             created_by="admin-1",
         )
+
+
+def test_source_rejects_nonstandard_https_ports(db):
+    with pytest.raises(ValueError, match="port 443"):
+        create_source(
+            db,
+            name="Nonstandard port",
+            base_url="https://example.za:8443",
+            purpose="Avoid arbitrary service ports",
+            terms_reviewed=True,
+            collection_permitted=True,
+            robots_reviewed=True,
+            enabled=True,
+            requests_per_minute=1,
+            created_by="admin-1",
+        )
