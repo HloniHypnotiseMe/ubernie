@@ -26,15 +26,17 @@ candidates:
     blocker: "Continue selective extraction only where source/dependency review justifies it; preserve MIT notice for any future copied code."
   - id: scrapling_web_extraction
     capability: web_scraping
-    source_repository: "Scrapling/Scrapling"
-    source_as_registered_in_c6_arsenal: "https://github.com/Scrapling/Scrapling"
-    source_type: upstream_candidate
-    fork_status: unresolved
-    source_commit: null
-    licence: unresolved
-    intended_use: "Public business-page crawling and structured extraction"
-    status: registered
-    blocker: "Resolve canonical repository identity, controlled-fork location, exact commit, licence and dependency closure before extraction. Current GitHub file lookup against the registered owner/path returned NOT_FOUND."
+    source_repository: "HloniHypnotiseMe/Scrapling"
+    source_type: controlled_fork
+    upstream: "D4Vinci/Scrapling"
+    source_branch: "main"
+    source_commit: "2b160ee18bfee79bb0115e2d9e9c746c8d9bf4c9"
+    upstream_version: "0.4.15"
+    licence: "BSD 3-Clause; retain copyright, conditions and disclaimer"
+    intended_use: "HTML parsing and structured business-data extraction; HTTP fetch integration via UBERNIE-controlled client"
+    status: extracted_as_dependency
+    extraction_note: "Pinned scrapling==0.4.15 in Web Department requirements; UBERNIE-owned extractor uses Scrapling Selector for explicit Schema.org LocalBusiness/Organization entities. Fetch policy remains in UBERNIE."
+    blocker: "Validate dependency install and tests in CI; do not use stealth/anti-detection features. Review future source-specific terms and robots policy before collection."
   - id: headlessx_browser_extraction
     capability: browser_automation
     source_repository: "saifyxpro/HeadlessX"
