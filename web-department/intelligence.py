@@ -6,6 +6,7 @@ intake, and human review. It does not fetch arbitrary URLs or auto-publish data.
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import re
 import uuid
 from datetime import datetime, timezone
@@ -38,7 +39,16 @@ def _host(value: str) -> str:
     parsed = urlparse(value)
     if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
         raise ValueError("Only credential-free HTTPS URLs are accepted")
-    return parsed.hostname.lower().rstrip(".")
+    host = parsed.hostname.lower().rstrip(".")
+    if host == "localhost" or host.endswith((".localhost", ".local", ".internal")):
+        raise ValueError("Private hostnames are not valid collection sources")
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return host
+    if not address.is_global:
+        raise ValueError("Non-public IP addresses are not valid collection sources")
+    return host
 
 
 def _normalise(value: str | None) -> str:
