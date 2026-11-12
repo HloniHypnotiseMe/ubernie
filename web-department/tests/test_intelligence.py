@@ -134,3 +134,22 @@ def test_duplicate_candidate_is_not_silently_merged_or_recreated(db):
     assert duplicate2 is True
     assert first.id == second.id
     assert second.status == "pending_review"
+
+
+def test_same_name_same_city_different_official_domains_are_not_merged(db):
+    item = source(db)
+    first, duplicate1 = ingest_candidate(
+        db, source_id=item.id, source_url="https://directory.example.za/a",
+        business_name="Alpha Plumbing", created_fields={
+            "city": "Johannesburg", "website": "https://alpha-one.example.za",
+        },
+    )
+    second, duplicate2 = ingest_candidate(
+        db, source_id=item.id, source_url="https://directory.example.za/b",
+        business_name="Alpha Plumbing", created_fields={
+            "city": "Johannesburg", "website": "https://alpha-two.example.za",
+        },
+    )
+    assert duplicate1 is False
+    assert duplicate2 is False
+    assert first.id != second.id
