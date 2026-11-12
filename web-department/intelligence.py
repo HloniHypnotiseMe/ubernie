@@ -233,3 +233,16 @@ def review_candidate(candidate_id: str, body: ReviewRequest,
     db.commit()
     return {"id": candidate.id, "status": candidate.status,
             "message": "Review recorded. This endpoint does not publish the candidate."}
+
+
+@router.post("/jobs/{job_id}/run")
+async def run_intelligence_job(job_id: str, user: dict = Depends(admin_user),
+                               db: Session = Depends(_session)):
+    from intelligence_worker import execute_job
+
+    try:
+        return await execute_job(db, job_id)
+    except ValueError as exc:
+        code = str(exc)
+        status_code = 404 if code == "job_not_found" else 409
+        raise HTTPException(status_code=status_code, detail=code)
