@@ -39,6 +39,8 @@ def _host(value: str) -> str:
     parsed = urlparse(value)
     if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
         raise ValueError("Only credential-free HTTPS URLs are accepted")
+    if parsed.port not in (None, 443):
+        raise ValueError("Only standard HTTPS port 443 is accepted")
     host = parsed.hostname.lower().rstrip(".")
     if host == "localhost" or host.endswith((".localhost", ".local", ".internal")):
         raise ValueError("Private hostnames are not valid collection sources")
