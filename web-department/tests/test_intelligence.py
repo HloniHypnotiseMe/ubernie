@@ -116,7 +116,7 @@ def test_candidate_keeps_provenance_and_stays_pending_review(db):
     )
     assert duplicate is False
     assert candidate.status == "pending_review"
-    assert len(candidate.evidence) == 3
+    assert len(candidate.evidence) == 4
     assert all(row["source_url"] == "https://directory.example.za/listing/alpha" for row in candidate.evidence)
 
 
