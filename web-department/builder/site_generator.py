@@ -51,6 +51,20 @@ class SiteGenerator:
         },
     }
 
+    # Uber Smart Capabilities - Adapted for Ubernie Directory (Not Ride-Hailing)
+    SMART_CAPABILITIES = {
+        "geo_matching": "Find nearest by ETA + rating, not just distance",
+        "upfront_pricing": "Price from server catalogue, never client price",
+        "live_share": "Share listing / tour / voucher link via WhatsApp",
+        "two_way_ratings": "Customer rates business, business rates customer",
+        "verified_badge": "OTP + ID + CIPC / RMI verified",
+        "thursday_surge_reverse": "Demand spike Thursday = prices drop via Deals Corner",
+        "batch_matching": "Lead sent to 3 nearest best-rated, first to reply in 5 min wins",
+        "lead_state_machine": "inquiry -> replied -> tour_booked -> showed -> paid -> reviewed",
+        "featured_membership": "Ubernie Featured = Uber One for businesses",
+        "multi_location": "Mall / Agency / Dealer Group = 1 bill, many locations",
+    }
+
     def __init__(self, shop_data):
         self.shop = shop_data
         self.industry = shop_data.get("industry", "retail").lower()
