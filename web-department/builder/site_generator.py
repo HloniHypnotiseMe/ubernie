@@ -44,6 +44,11 @@ class SiteGenerator:
             "features": ["service_list", "quote_form", "contact"],
             "primary_color": "#F77F00",
         },
+        "daycare": {
+            "pages": ["home", "programs", "fees", "tour", "contact", "checkout"],
+            "features": ["programs_grid", "fees_table", "tour_booking", "whatsapp_widget", "enrollment_form", "meals_info"],
+            "primary_color": "#FF6B35",
+        },
     }
 
     def __init__(self, shop_data):
@@ -112,7 +117,7 @@ class SiteGenerator:
             "hero": {
                 "headline": self.shop["name"],
                 "subheadline": self.shop.get("tagline", "Quality products, delivered to your door"),
-                "cta": "Order Now" if self.industry == "restaurant" else "Shop Now",
+                "cta": "Book FREE Tour" if self.industry == "daycare" else ("Order Now" if self.industry == "restaurant" else "Shop Now"),
             },
             "sections": ["featured_products", "about_preview", "delivery_banner", "contact_cta"],
         }

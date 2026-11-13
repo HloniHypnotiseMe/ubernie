@@ -89,3 +89,12 @@ candidates:
     intended_use: "Index approved business records for search"
     status: registered
     blocker: "Verify actual implementation, version, index lifecycle and production health."
+
+    - id: daycare_category_template
+    capability: daycare_directory_category_and_storefront_template
+    source_repository: "C6-Os + Ubernie internal"
+    source_type: internal
+    licence: "Internal - RemotePay Fintech Services owns Ubernie"
+    intended_use: "Day Care & Creche category (Laravel) + daycare template (Web Department) + KWMDC first listing"
+    status: extracted
+    extraction_note: "Categories table was missing - created 2026_11_13_000001_create_categories_table.php. Day Care is parent, 8 subcategories. Web Department daycare template added to site_generator.py TEMPLATES. Pricing server-side only in catalogue.py. Payment via RemotePay payment-links SimplyBlu only. BusinessCandidate remains pending_review until human review - POPIA."
