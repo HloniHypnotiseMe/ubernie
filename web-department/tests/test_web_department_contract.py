@@ -130,3 +130,13 @@ def test_checkout_endpoint_uses_server_catalogue_and_server_merchant_identity():
     assert "merchant_id = f\"merchant_{req.shop_id}\"" in handler
     assert "sum(i.price * i.qty for i in req.items)" not in handler
     assert "items=canonical_items" in handler
+
+
+def test_daycare_template_exists_in_site_generator():
+    from builder.site_generator import SiteGenerator
+    gen = SiteGenerator({"name": "KWMDC Test", "industry": "daycare", "phone": "0837238576"})
+    site = gen.generate()
+    assert site["template"] == "daycare"
+    assert site["config"]["primary_color"] == "#FF6B35"
+    assert "tour" in site["pages"]
+    assert "Book FREE Tour" in str(site["pages"]["home"])
