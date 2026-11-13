@@ -126,5 +126,15 @@ class CategorySeeder extends Seeder
             }
         }
 
+
+        // --- WAVE 3B: Smart Drinker - Take Me Home (Under Drinking Well) ---
+        $dw2 = DB::table('categories')->where('slug','drinking-well')->first();
+        if ($dw2) {
+            DB::table('categories')->updateOrInsert(['slug'=>'smart-drinker'],[
+                'name'=>'Smart Drinker - Take Me Home','slug'=>'smart-drinker','parent_id'=>$dw2->id,'icon'=>'🚗','color'=>'#06D6A0',
+                'description'=>'Smart Drinker - Chauffeur drives YOU home in YOUR car. Like GoodFellas. OTP + Verified + Live Share. 18+ only. Don\'t drink and drive - Book Smart Drinker.','seo_title'=>'Smart Drinker - Take Me Home in {city} | Drinking Well on Ubernie','seo_description'=>'Smart Drinker - Chauffeur drives you home in your own car in {city}. Upfront price, verified drivers, live share, OTP. Book on WhatsApp.','featured'=>true,'is_active'=>true,'sort_order'=>0,'updated_at'=>now(),'created_at'=>now()
+            ]);
+        }
+
     }
 }
