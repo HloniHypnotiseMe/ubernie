@@ -17,7 +17,11 @@ Route::prefix('v1/ubernie')->group(function () {
         Route::post('/shop/leads/{id}/reply', fn($id) => response()->json(['message' => "Reply to lead $id"]));
         Route::post('/shop/deals', fn() => response()->json(['message' => 'Post Thursday Deal']));
         Route::post('/shop/mark-paid', fn() => response()->json(['message' => 'Mark paid via RemotePay']));
-    });
+        // Business in a Box - One Checkout = One Box
+    Route::post('/business-in-a-box/checkout', fn() => response()->json(['message' => 'Create Business in a Box order - R9500 + R750/mo - Returns RemotePay payment-link']));
+    Route::post('/business-in-a-box/webhook', fn() => response()->json(['message' => 'RemotePay webhook - payment.paid -> auto-provision website + listing + whatsapp + CRM']));
+    Route::get('/business-in-a-box/{id}', fn($id) => response()->json(['message' => "Box $id - payment + provision status"]));
+});
     // Driver App - Requires Auth
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/driver/online', fn() => response()->json(['message' => 'Driver online']));
