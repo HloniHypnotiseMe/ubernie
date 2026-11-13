@@ -44,6 +44,25 @@ class SiteGenerator:
             "features": ["service_list", "quote_form", "contact"],
             "primary_color": "#F77F00",
         },
+        "daycare": {
+            "pages": ["home", "programs", "fees", "tour", "contact", "checkout"],
+            "features": ["programs_grid", "fees_table", "tour_booking", "whatsapp_widget", "enrollment_form", "meals_info"],
+            "primary_color": "#FF6B35",
+        },
+    }
+
+    # Uber Smart Capabilities - Adapted for Ubernie Directory (Not Ride-Hailing)
+    SMART_CAPABILITIES = {
+        "geo_matching": "Find nearest by ETA + rating, not just distance",
+        "upfront_pricing": "Price from server catalogue, never client price",
+        "live_share": "Share listing / tour / voucher link via WhatsApp",
+        "two_way_ratings": "Customer rates business, business rates customer",
+        "verified_badge": "OTP + ID + CIPC / RMI verified",
+        "thursday_surge_reverse": "Demand spike Thursday = prices drop via Deals Corner",
+        "batch_matching": "Lead sent to 3 nearest best-rated, first to reply in 5 min wins",
+        "lead_state_machine": "inquiry -> replied -> tour_booked -> showed -> paid -> reviewed",
+        "featured_membership": "Ubernie Featured = Uber One for businesses",
+        "multi_location": "Mall / Agency / Dealer Group = 1 bill, many locations",
     }
 
     def __init__(self, shop_data):
@@ -112,7 +131,7 @@ class SiteGenerator:
             "hero": {
                 "headline": self.shop["name"],
                 "subheadline": self.shop.get("tagline", "Quality products, delivered to your door"),
-                "cta": "Order Now" if self.industry == "restaurant" else "Shop Now",
+                "cta": "Book FREE Tour" if self.industry == "daycare" else ("Order Now" if self.industry == "restaurant" else "Shop Now"),
             },
             "sections": ["featured_products", "about_preview", "delivery_banner", "contact_cta"],
         }

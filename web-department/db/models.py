@@ -136,3 +136,74 @@ class TaxRecord(Base):
     customer_reference: Mapped[str | None] = mapped_column(String(255), nullable=True)
     source_system: Mapped[str] = mapped_column(String(64), default="c6_web_department")
     recorded_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True)
+
+
+class IntelligenceSource(Base):
+    """Approved public-information source registry; collection is disabled by default."""
+    __tablename__ = "intelligence_sources"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(180))
+    base_url: Mapped[str] = mapped_column(String(1000), unique=True, index=True)
+    purpose: Mapped[str] = mapped_column(String(500))
+    terms_reviewed: Mapped[bool] = mapped_column(Boolean, default=False)
+    collection_permitted: Mapped[bool] = mapped_column(Boolean, default=False)
+    robots_reviewed: Mapped[bool] = mapped_column(Boolean, default=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    requests_per_minute: Mapped[int] = mapped_column(Integer, default=6)
+    created_by: Mapped[str] = mapped_column(String(36), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now)
+
+
+class IntelligenceJob(Base):
+    """Durable crawl/intake job record. Queue execution is a separate worker concern."""
+    __tablename__ = "intelligence_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    source_id: Mapped[str] = mapped_column(String(36), ForeignKey("intelligence_sources.id"), index=True)
+    requested_url: Mapped[str] = mapped_column(String(2000))
+    status: Mapped[str] = mapped_column(String(24), default="queued", index=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    created_by: Mapped[str] = mapped_column(String(36), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class BusinessCandidate(Base):
+    """Discovered business record. Never public until separately reviewed and approved."""
+    __tablename__ = "business_candidates"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    dedupe_key: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    business_name: Mapped[str] = mapped_column(String(255), index=True)
+    category: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    province: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    website: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    source_url: Mapped[str] = mapped_column(String(2000))
+    source_id: Mapped[str] = mapped_column(String(36), ForeignKey("intelligence_sources.id"), index=True)
+    evidence: Mapped[list] = mapped_column(JSON, default=list)
+    confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    status: Mapped[str] = mapped_column(String(24), default="pending_review", index=True)
+    discovered_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True)
+    reviewed_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class BusinessCandidateEvidence(Base):
+    """Append-only provenance for an observed business field."""
+    __tablename__ = "business_candidate_evidence"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    candidate_id: Mapped[str] = mapped_column(String(36), ForeignKey("business_candidates.id"), index=True)
+    field_name: Mapped[str] = mapped_column(String(80))
+    observed_value: Mapped[str] = mapped_column(Text)
+    source_url: Mapped[str] = mapped_column(String(2000))
+    observed_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True)
+    evidence_kind: Mapped[str] = mapped_column(String(40), default="public_web_claim")
