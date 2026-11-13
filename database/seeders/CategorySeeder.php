@@ -109,5 +109,22 @@ class CategorySeeder extends Seeder
             }
         }
 
+
+        // --- WAVE 3: Drinking Well + Delivery Waitlists ---
+        $drinking = DB::table('categories')->updateOrInsert(
+            ['slug'=>'drinking-well'],
+            ['name'=>'Drinking Well','slug'=>'drinking-well','parent_id'=>null,'icon'=>'🍻','color'=>'#6A4C93','description'=>'Bars, shebeens, taverns, pubs, lounges, bottle stores - Drinking Well. Drink responsibly. No under 18. Don\'t drink and drive.','seo_title'=>'Bars, Shebeens & Taverns in {city} | Drinking Well on Ubernie','seo_description'=>'Find Bars, Shebeens, Taverns, Pubs & Bottle Stores in {city}. Drinking Well on Ubernie. Drink responsibly.','featured'=>true,'is_active'=>true,'sort_order'=>10,'updated_at'=>now(),'created_at'=>now()]
+        );
+        $dw = DB::table('categories')->where('slug','drinking-well')->first();
+        if ($dw) {
+            $subs = [
+                ['Shebeen','shebeen',1],['Tavern','tavern',2],['Pub','pub',3],
+                ['Sports Bar','sports-bar',4],['Lounge','lounge',5],['Bottle Store','bottle-store',6],
+            ];
+            foreach ($subs as [$n,$s,$o]) {
+                DB::table('categories')->updateOrInsert(['slug'=>$s],['name'=>$n,'slug'=>$s,'parent_id'=>$dw->id,'icon'=>'🍻','color'=>'#6A4C93','description'=>$n.' - Drinking Well. 18+ only. Drink responsibly.','featured'=>false,'is_active'=>true,'sort_order'=>$o,'updated_at'=>now(),'created_at'=>now()]);
+            }
+        }
+
     }
 }
