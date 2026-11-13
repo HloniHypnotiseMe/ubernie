@@ -8,23 +8,23 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_runtime_dependencies_cover_imports():
-    req = (ROOT / "requirements.txt").read_text()
+    req = (ROOT / "requirements.txt").read_text(encoding="utf-8")
     for package in ("bcrypt", "python-jose", "psycopg", "pytest"):
         assert package in req
 
 
 def test_production_contract_disables_mock_fallback():
-    api = (ROOT / "api.py").read_text()
-    env = (ROOT / ".env.example").read_text()
+    api = (ROOT / "api.py").read_text(encoding="utf-8")
+    env = (ROOT / ".env.example").read_text(encoding="utf-8")
     assert "REMOTEPAY_MODE" in api
     assert "REMOTEPAY_WEBHOOK_SECRET" in api
-    assert "REMOTEPAY_MODE: live" in (ROOT / "docker-compose.production.yml").read_text()
+    assert "REMOTEPAY_MODE: live" in (ROOT / "docker-compose.production.yml").read_text(encoding="utf-8")
     assert "Payment is not verified as paid" in api
 
 
 def test_internal_apps_do_not_hardcode_localhost_api():
     for name in ("dashboard/index.html", "rider/index.html", "signup/index.html", "track/index.html"):
-        text = (ROOT / "static" / name).read_text()
+        text = (ROOT / "static" / name).read_text(encoding="utf-8")
         assert "127.0.0.1:8100" not in text
         assert "window.UBERNIE_WEB_DEPARTMENT_API" in text
 
@@ -36,7 +36,7 @@ def test_production_container_contract_exists():
 
 
 def test_mock_checkout_routes_are_blocked_in_production():
-    source = (ROOT / "api.py").read_text()
+    source = (ROOT / "api.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
     functions = {
         node.name: node
@@ -122,7 +122,7 @@ asyncio.run(main())
 
 
 def test_checkout_endpoint_uses_server_catalogue_and_server_merchant_identity():
-    source = (ROOT / "api.py").read_text()
+    source = (ROOT / "api.py").read_text(encoding="utf-8")
     start = source.index("async def create_payment(")
     end = source.index("\n\n@app.post(\"/api/orders/confirm\")", start)
     handler = source[start:end]
