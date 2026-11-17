@@ -55,3 +55,7 @@ auth.json
 *.temp
 *.bak
 *.backup
+index.html.BACKUP-BEFORE-RH
+listings.json.BACKUP-BEFORE-AUDITV2
+patch_rh_safe.py
+fix_audit_v2_safe.py
