@@ -77,7 +77,7 @@ function render(){
   <button class="btn btn-gold" onclick="openClaim(${data.indexOf(x)})">⭐ CLAIM THIS LISTING - FREE AUDIT</button>
   </div>`}).join('')||'<p style="grid-column:1/-1;text-align:center">No results</p>';
 }
-document.getElementById('q').addEventListener('input',render); document.getElementById('cat').addEventListener('change',render); document.getElementById('area').addEventListener('change',render);
+document.getElementById('q').addEventListener('input',render); document.getElementById('cat').addEventListener('change',render); document.getElementById('provinceFilter').addEventListener('change',render); document.getElementById('metroFilter').addEventListener('change',render); document.getElementById('suburbFilter').addEventListener('change',render);
 function enquire(idx){let x=data[idx]; window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent('Hi Ubernie! I want to contact '+x.name+' in '+x.area)}`,'_blank');}
 function openClaim(idx){
  let x=data[idx]; let au=x.audit||{missing:[],score:0};
