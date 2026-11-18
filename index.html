@@ -25,11 +25,12 @@ header{background:#111;color:#fff;padding:22px;text-align:center}header h1{margi
 <div onclick="openAddBusiness()" style="flex:1;min-width:200px;background:#25D366;color:#fff;padding:16px;border-radius:12px;cursor:pointer;text-align:center"><b>➕ ADD YOUR BUSINESS - FREE</b><br><small>Not listed? Add in 60 seconds</small></div>
 </div>
 <div style="text-align:center;color:#666;font-size:13px">⭐ 4.8/5 from SA businesses | ✅ 1847+ Listed | 🔥 12 Claimed This Week | 🇿🇦 100% South African Owned</div>
-<div class="filters"><input id="q" placeholder="Search pharmacy, school, shisanyama..."><select id="cat"><option value="">All Categories</option></select><select id="area" onchange="render()"><option value="">All Areas - South Africa</option></select>
+<div class="filters"><input id="q" placeholder="Search pharmacy, school, shisanyama..."><select id="cat"><option value="">All Categories</option></select><select id="area" onchange="render()"><option value="">All Areas - South Africa</option></select><select id="province" onchange="render()"><option value="">All Provinces</option></select>
 <div class="count" id="count"></div><div class="grid" id="grid"></div>
 <div class="modal" id="modal"><div class="modal-content" id="modalContent"></div></div>
 <script>
 
+const MY_WA="27600000000"; // <-- CHANGE TO YOUR NUMBER
 // ===== REMOTEPAY CONFIG - CHANGE THESE =====
 const REMOTEPAY = {
   // SimplyBlu PaymentLinks - Create ONE link per service in SimplyBlu dashboard, paste here
@@ -55,16 +56,16 @@ const REMOTEPAY = {
   fallbackWA: MY_WA,
 };
 
-const MY_WA="27600000000"; // <-- CHANGE TO YOUR NUMBER
 let data=[];
 fetch('listings.json').then(r=>r.json()).then(j=>{data=j;
 let cats=[...new Set(j.map(x=>x.category))].sort(); let areas=[...new Set(j.map(x=>x.area))].sort();
 document.getElementById('cat').innerHTML='<option value="">All Categories</option>'+cats.map(c=>`<option>${c}</option>`).join('');
 document.getElementById('area').innerHTML='<option value="">All Areas - South Africa</option>'+areas.map(a=>`<option>${a}</option>`).join('');
+let provinces=[...new Set(j.map(x=>x.province||'Unknown'))].sort(); document.getElementById('province').innerHTML='<option value="">All Provinces</option>'+provinces.map(p=>`<option>${p}</option>`).join('');
 render();});
 function render(){
  let q=document.getElementById('q').value.toLowerCase(); let c=document.getElementById('cat').value; let a=document.getElementById('area').value;
- let f=data.filter(x=>(!c||x.category===c)&&(!a||x.area===a)&&((x.name+' '+x.address+' '+x.category+' '+x.area).toLowerCase().includes(q)));
+ let pv=document.getElementById('province').value; let f=data.filter(x=>(!c||x.category===c)&&(!a||x.area===a)&&(!pv||x.province===pv)&&((x.name+' '+x.address+' '+x.category+' '+x.area).toLowerCase().includes(q)));
  document.getElementById('count').textContent=`Showing ${f.length} audited businesses in South Africa`;
  document.getElementById('grid').innerHTML=f.map((x,i)=>{
   let au=x.audit||{score:0,missing:[]}; let cls=au.score<40?'low':au.score<70?'med':'high';
@@ -75,7 +76,7 @@ function render(){
   <button class="btn btn-gold" onclick="openClaim(${data.indexOf(x)})">⭐ CLAIM THIS LISTING - FREE AUDIT</button>
   </div>`}).join('')||'<p style="grid-column:1/-1;text-align:center">No results</p>';
 }
-document.getElementById('q').addEventListener('input',render); document.getElementById('cat').addEventListener('change',render); document.getElementById('area').addEventListener('change',render);
+document.getElementById('q').addEventListener('input',render); document.getElementById('cat').addEventListener('change',render); document.getElementById('area').addEventListener('change',render); document.getElementById('province').addEventListener('change',render);
 function enquire(idx){let x=data[idx]; window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent('Hi Ubernie! I want to contact '+x.name+' in '+x.area)}`,'_blank');}
 function openClaim(idx){
  let x=data[idx]; let au=x.audit||{missing:[],score:0};
