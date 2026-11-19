@@ -80,7 +80,7 @@ def test_robots_denial_is_reported(monkeypatch):
     monkeypatch.setattr("scraper.engine._assert_public_host", lambda host: None)
     def handler(request):
         if request.url.path == "/robots.txt":
-            return httpx.Response(200, text="User-agent: *\\nDisallow: /")
+            return httpx.Response(200, text="User-agent: *\nDisallow: /")
         return httpx.Response(200, headers={"content-type": "text/html"}, content=HTML)
     client = httpx.Client(transport=httpx.MockTransport(handler))
     scraper = Scraper(ScrapeConfig(delay_seconds=0), client=client)
