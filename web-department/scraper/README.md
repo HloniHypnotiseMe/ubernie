@@ -27,3 +27,32 @@ The crawler records page title, description, canonical URL, visible text, public
 - Robots denial and robots retrieval failure fail closed.
 - Validate extracted business records before publishing them in Ubernie. Extraction is not verification of ownership, consent, accuracy or current trading status.
 - This MVP uses a synchronous HTTP fetcher. JavaScript-rendered pages, adaptive selectors, durable job queues, proxy rotation and dashboard integration are explicitly later phases—not claimed as complete.
+
+
+## Google Places discovery (South Africa)
+
+Ubernie can query the official Google Places API (New) for immediate in-app discovery of businesses in South Africa. This is an API integration, not HTML scraping of Google Maps.
+
+1. In a Google Cloud project, enable **Places API (New)** and billing.
+2. Create a server-side API key restricted to the Places API and the deployment environment.
+3. Set the secret as `GOOGLE_MAPS_API_KEY` (never commit it).
+4. Use `GooglePlacesClient.search_businesses("plumbers in Johannesburg")` from the application. The adapter sets `regionCode=ZA`, uses an explicit field mask, includes service-area businesses, and limits Text Search pagination to at most three pages.
+
+Example:
+
+```python
+from scraper.google_places import GooglePlacesClient
+
+with GooglePlacesClient() as places:
+    transient_results = places.search_businesses("electricians in Soweto")
+    # Render these results immediately in a Google Places-powered UI.
+    # You may retain a Google place ID. Do not copy other Google Maps
+    # Content into Ubernie's independent business/lead database.
+```
+
+**Google data boundary:** Google Maps Content is subject to Google Maps Platform terms and attribution/display requirements. Do not export, index, bulk-download, or persist Google business names, addresses, phone numbers, websites, ratings, reviews, or other Places content in an independent lead database. Place IDs are exempt from the general caching restriction. Use a returned website URL transiently to visit the business's own public website with the independent C6 crawler; only independently collected website content should enter the C6 lead database, with its own source URL and fetch timestamp. Re-check Google's current policies before release.
+
+Official references:
+- https://developers.google.com/maps/documentation/places/web-service/text-search
+- https://developers.google.com/maps/documentation/places/web-service/policies
+- https://developers.google.com/maps/documentation/places/web-service/usage-and-billing
