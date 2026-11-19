@@ -108,8 +108,12 @@ class Scraper:
                 response = self.client.get(robots_url, timeout=self.config.timeout_seconds)
                 if response.status_code == 200:
                     parser.parse(response.text.splitlines())
-                else:
+                elif response.status_code == 404:
+                    # A missing robots.txt means the origin publishes no crawl rules.
                     parser.parse([])
+                else:
+                    # Do not crawl when a policy endpoint redirects, rate-limits or fails.
+                    parser.parse(["User-agent: *", "Disallow: /"])
             except httpx.HTTPError:
                 # Fail closed when the site's crawl policy cannot be read.
                 parser.parse(["User-agent: *", "Disallow: /"])
