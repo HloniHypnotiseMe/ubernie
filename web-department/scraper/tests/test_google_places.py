@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import pytest
 
@@ -34,9 +36,9 @@ def test_search_uses_south_africa_region_and_explicit_field_mask():
     assert request.url == SEARCH_URL
     assert request.headers["X-Goog-Api-Key"] == "test-key"
     assert request.headers["X-Goog-FieldMask"] == FIELD_MASK
-    body = request.read()
-    assert b'"regionCode":"ZA"' in body
-    assert b'"includePureServiceAreaBusinesses":true' in body
+    body = json.loads(request.content)
+    assert body["regionCode"] == "ZA"
+    assert body["includePureServiceAreaBusinesses"] is True
 
 
 def test_follows_next_page_token_without_changing_query():
