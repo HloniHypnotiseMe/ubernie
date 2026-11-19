@@ -92,7 +92,7 @@ def test_robots_denial_is_reported(monkeypatch):
 
     def handler(request):
         if request.url.path == "/robots.txt":
-            return httpx.Response(200, text="User-agent: *\\nDisallow: /")
+            return httpx.Response(200, text="User-agent: *\nDisallow: /")
         return httpx.Response(200, headers={"content-type": "text/html"}, content=HTML)
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
