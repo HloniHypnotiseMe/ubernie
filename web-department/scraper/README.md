@@ -56,3 +56,34 @@ Official references:
 - https://developers.google.com/maps/documentation/places/web-service/text-search
 - https://developers.google.com/maps/documentation/places/web-service/policies
 - https://developers.google.com/maps/documentation/places/web-service/usage-and-billing
+
+
+## Free-first South African business discovery (OpenStreetMap)
+
+Ubernie also includes a free-data discovery adapter using OpenStreetMap (OSM) via the read-only Overpass API. It is separate from Google Places: OSM data can be retained and used under the Open Database License (ODbL), provided the licence and attribution obligations are followed.
+
+### Run a discovery search
+
+From `web-department/`:
+
+```bash
+python -m scraper.osm_discovery --category plumber --area Gauteng --limit 50 --output data/gauteng-plumbers.json
+python -m scraper.osm_discovery --category restaurant --area Johannesburg --limit 50 --output data/johannesburg-restaurants.csv
+```
+
+Supported initial categories: accountant, builder, cafe, dentist, doctor, electrician, hairdresser, hotel, lawyer, mechanic, painter, pharmacy, plumber, restaurant, school and supermarket. Search is bounded to 100 results per request and supports named administrative areas such as provinces and cities when they are mapped in OSM. Coverage and tagging quality vary; an empty result does not prove that no such businesses exist.
+
+Each record carries its OSM element identity, source URL, retrieval timestamp, raw OSM tags, and ODbL attribution metadata. Keep OSM-derived data clearly labelled and separate from independently collected website evidence. Display **© OpenStreetMap contributors** and link to https://www.openstreetmap.org/copyright where users access OSM-derived records. If distributing an adapted or derivative database, review and comply with ODbL share-alike requirements.
+
+### Free-service limits and commercial deployment
+
+- OSM map data itself is free to use commercially under ODbL, with attribution and share-alike obligations.
+- Public Overpass servers are shared community infrastructure, not a production SLA. This adapter makes one bounded request at a time, identifies Ubernie with a User-Agent, does not retry overloaded responses, and caps each search at 100 records.
+- The public FOSSGIS Overpass service guidance recommends self-hosting or a paid service for commercial use, and calls for caching, rate limiting and no parallel scripts. Use this public endpoint for development and controlled low-volume evaluation only; do not make it the guaranteed backend for paying customers.
+- For production at scale, use South Africa regional OSM extracts on Ubernie's own infrastructure or a provider whose commercial terms and capacity support the workload. The OSM data remains free; compute, storage and bandwidth may not be.
+- No Google API key, Google Cloud billing account, or paid business-data subscription is needed for this OSM discovery path.
+
+Official references:
+- https://www.openstreetmap.org/copyright
+- https://osmfoundation.org/wiki/Licence_and_Legal_FAQ
+- https://wiki.openstreetmap.org/wiki/Overpass_API
