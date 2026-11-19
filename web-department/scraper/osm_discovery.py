@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import os
 import re
+import threading
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -80,6 +82,8 @@ class OSMBusinessDiscovery:
             timeout=httpx.Timeout(config.timeout_seconds),
             headers={"User-Agent": config.user_agent, "Accept": "application/json"},
         )
+        self._request_lock = threading.Lock()
+        self._last_request_at = 0.0
 
     def close(self) -> None:
         if not self._external_client:
@@ -169,17 +173,25 @@ class OSMBusinessDiscovery:
             raise ValueError(f"limit must be between 1 and {self.config.max_results}")
         query = self.build_query(category, area_name, result_limit)
         try:
-            response = self.client.post(
-                self.config.endpoint,
-                data={"data": query},
-                headers={"User-Agent": self.config.user_agent},
-                timeout=self.config.timeout_seconds,
-            )
+            # Serialise calls from this client and leave a quiet interval between them.
+            with self._request_lock:
+                wait = self.config.minimum_request_interval_seconds - (time.monotonic() - self._last_request_at)
+                if self._last_request_at and wait > 0:
+                    time.sleep(wait)
+                response = self.client.post(
+                    self.config.endpoint,
+                    data={"data": query},
+                    headers={"User-Agent": self.config.user_agent},
+                    timeout=self.config.timeout_seconds,
+                )
+                self._last_request_at = time.monotonic()
             if response.status_code in {429, 503, 504}:
                 raise OSMDiscoveryError(
                     f"Overpass is busy (HTTP {response.status_code}). Pause before retrying; do not parallelise requests."
                 )
             response.raise_for_status()
+            if len(response.content) > 5_000_000:
+                raise OSMDiscoveryError("Overpass response exceeded the 5 MB safety limit")
             payload = response.json()
         except OSMDiscoveryError:
             raise
