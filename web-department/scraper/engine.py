@@ -160,8 +160,8 @@ class Scraper:
         result.canonical_url = urljoin(final_url, canonical.get("href")) if canonical and canonical.get("href") else final_url
         result.text = " ".join(soup.stripped_strings)[:100_000]
         import re
-        result.emails = sorted(set(re.findall(r"(?i)\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b", result.text)))[:100]
-        result.phones = sorted(set(re.findall(r"(?<!\\w)(?:\\+27|0)[\\s().-]*(?:\\d[\\s().-]*){8,10}", result.text)))[:100]
+        result.emails = sorted(set(re.findall(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", result.text)))[:100]
+        result.phones = sorted(set(re.findall(r"(?<!\w)(?:\+27|0)[\s().-]*(?:\d[\s().-]*){8,10}", result.text)))[:100]
         for node in soup.find_all("script", attrs={"type": "application/ld+json"}):
             try:
                 value = json.loads(node.string or node.get_text())
