@@ -1,0 +1,100 @@
+schema_version: "1.0"
+product: ubernie
+legal_owner: "RemotePay Fintech Services"
+public_identity: "UBERNIE"
+branch: "feature/ubernie-intelligence-acquisition"
+status_semantics:
+  registered: "Listed in a capability registry; not proof of install or operation."
+  inspected: "Source code and licence inspected."
+  selected: "Approved for a defined UBERNIE requirement."
+  extracted: "Required component copied/adapted into UBERNIE with provenance."
+  works: "Execution demonstrated by tests."
+  verified: "Evidence recorded for the acceptance criteria."
+  live: "Production runtime and external routing directly verified."
+extractions: []
+candidates:
+  - id: agent_crm_evidence_work_queue
+    capability: evidence_led_business_enrichment
+    source_repository: "HloniHypnotiseMe/crm"
+    source_branch: "release"
+    source_type: controlled_fork
+    source_commit: "627b8a4da72f4b4014157339f4183bc60b3bb6af"
+    licence: "MIT; preserve Comp AI copyright and licence notice"
+    intended_use: "Extract narrowly scoped evidence ledger, company-enrichment workflow patterns, durable work-queue/lease patterns and identity-matching skills"
+    status: inspected
+    extraction_note: "Evidence-led review, durable work-queue and fail-closed matching patterns were adapted into UBERNIE-owned Python/SQLAlchemy modules; no CRM runtime or source files copied."
+    blocker: "Continue selective extraction only where source/dependency review justifies it; preserve MIT notice for any future copied code."
+  - id: scrapling_web_extraction
+    capability: web_scraping
+    source_repository: "HloniHypnotiseMe/Scrapling"
+    source_type: controlled_fork
+    upstream: "D4Vinci/Scrapling"
+    source_branch: "main"
+    source_commit: "2b160ee18bfee79bb0115e2d9e9c746c8d9bf4c9"
+    upstream_version: "0.4.15"
+    licence: "BSD 3-Clause; retain copyright, conditions and disclaimer"
+    intended_use: "HTML parsing and structured business-data extraction; HTTP fetch integration via UBERNIE-controlled client"
+    status: extracted_as_dependency
+    extraction_note: "Pinned scrapling==0.4.15 in Web Department requirements; UBERNIE-owned extractor uses Scrapling Selector for explicit Schema.org LocalBusiness/Organization entities. Fetch policy remains in UBERNIE."
+    blocker: "Validate dependency install and tests in CI; do not use stealth/anti-detection features. Review future source-specific terms and robots policy before collection."
+  - id: headlessx_browser_extraction
+    capability: browser_automation
+    source_repository: "saifyxpro/HeadlessX"
+    source_commit: null
+    licence: "AGPL-3.0; headfox-js component separately states MPL-2.0"
+    intended_use: "Browser-rendered extraction where HTTP parsing is insufficient"
+    status: inspected
+    blocker: "AGPL-3.0 network-copyleft implications require explicit legal/product approval; avoid importing the whole service."
+  - id: page_agent_page_understanding
+    capability: page_understanding
+    source_repository: "alibaba/page-agent"
+    source_commit: null
+    licence: "MIT"
+    intended_use: "Optional DOM/page understanding for controlled interactive tasks"
+    status: inspected
+    blocker: "Not a crawler; select only if a defined page-agent task requires it."
+  - id: n8n_workflow_automation
+    capability: workflow_automation
+    source_repository: "HloniHypnotiseMe/n8n"
+    source_type: controlled_fork
+    source_commit: "137c64f5b7a5a1442738733a22dbf0892985eda7"
+    licence: unresolved
+    intended_use: "Scheduling, retries and business event workflows"
+    status: registered
+    blocker: "Inspect fork licence, workflow deployment and runtime contract; keep core ingestion state in UBERNIE."
+  - id: n8n_workflow_library
+    capability: workflow_templates
+    source_repository: "HloniHypnotiseMe/n8n-workflows"
+    source_type: controlled_fork
+    source_commit: "94007c1445d9258a7da116646b79473e7c7c3282"
+    licence: "MIT stated in repository README; verify exact fork LICENSE before copying"
+    intended_use: "Reuse selected workflow JSON patterns for source scheduling, notifications and review handoffs"
+    status: inspected
+    blocker: "Inspect candidate workflow JSON, credentials assumptions, node versions and source notices; workflow collection is not a crawler engine."
+  - id: ghost_osint_crm
+    capability: entity_relationship_research_patterns
+    source_repository: "HloniHypnotiseMe/GHOST-osint-crm"
+    source_type: controlled_fork
+    source_commit: null
+    licence: "CC BY-NC-SA 4.0"
+    intended_use: "Reference only for conceptual entity graph and investigation workflow ideas"
+    status: excluded_from_commercial_extraction
+    blocker: "NonCommercial restriction prevents direct commercial incorporation without separate permission. Do not copy code or database content into UBERNIE."
+  - id: meilisearch_directory_search
+    capability: directory_search
+    source_repository: "Existing UBERNIE integration"
+    source_type: internal
+    source_commit: null
+    licence: "Existing dependency; version and licence to verify from lockfile"
+    intended_use: "Index approved business records for search"
+    status: registered
+    blocker: "Verify actual implementation, version, index lifecycle and production health."
+
+    - id: daycare_category_template
+    capability: daycare_directory_category_and_storefront_template
+    source_repository: "C6-Os + Ubernie internal"
+    source_type: internal
+    licence: "Internal - RemotePay Fintech Services owns Ubernie"
+    intended_use: "Day Care & Creche category (Laravel) + daycare template (Web Department) + KWMDC first listing"
+    status: extracted
+    extraction_note: "Categories table was missing - created 2026_11_13_000001_create_categories_table.php. Day Care is parent, 8 subcategories. Web Department daycare template added to site_generator.py TEMPLATES. Pricing server-side only in catalogue.py. Payment via RemotePay payment-links SimplyBlu only. BusinessCandidate remains pending_review until human review - POPIA."
