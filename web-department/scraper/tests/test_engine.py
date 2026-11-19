@@ -1,7 +1,14 @@
 import json
+import sys
+from pathlib import Path
 
 import httpx
 import pytest
+
+# Make the package importable both from web-department/ and repository-root pytest runs.
+WEB_DEPARTMENT = Path(__file__).resolve().parents[2]
+if str(WEB_DEPARTMENT) not in sys.path:
+    sys.path.insert(0, str(WEB_DEPARTMENT))
 
 from scraper.engine import ScrapeConfig, Scraper, normalize_url, _assert_public_host
 
@@ -52,9 +59,13 @@ def test_extracts_business_fields_and_jsonld(monkeypatch):
 def test_crawl_is_same_domain_and_page_bounded(monkeypatch):
     monkeypatch.setattr("scraper.engine._assert_public_host", lambda host: None)
     calls = []
+
     def handler(request):
         calls.append(str(request.url))
-        return httpx.Response(200, headers={"content-type": "text/html"}, content=HTML)
+        # Each mock page has its own canonical URL, as real pages normally do.
+        page = HTML.replace(b'href="/about"', f'href="{request.url.path}"'.encode())
+        return httpx.Response(200, headers={"content-type": "text/html"}, content=page)
+
     scraper = make_scraper(handler, max_pages=2, max_depth=3)
     try:
         results = scraper.crawl(["https://example.org/"])
@@ -78,10 +89,12 @@ def test_http_errors_are_reported(monkeypatch):
 
 def test_robots_denial_is_reported(monkeypatch):
     monkeypatch.setattr("scraper.engine._assert_public_host", lambda host: None)
+
     def handler(request):
         if request.url.path == "/robots.txt":
-            return httpx.Response(200, text="User-agent: *\nDisallow: /")
+            return httpx.Response(200, text="User-agent: *\\nDisallow: /")
         return httpx.Response(200, headers={"content-type": "text/html"}, content=HTML)
+
     client = httpx.Client(transport=httpx.MockTransport(handler))
     scraper = Scraper(ScrapeConfig(delay_seconds=0), client=client)
     try:
