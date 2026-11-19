@@ -190,6 +190,7 @@ class Scraper:
             raise ValueError("At least one start URL is required")
         queue = deque((normalize_url(url), 0) for url in start_urls)
         seen: set[str] = set()
+        seen_canonicals: set[str] = set()
         start_hosts = {urlparse(url).hostname for url, _ in queue}
         results: list[ScrapeResult] = []
         while queue and len(results) < self.config.max_pages:
@@ -200,6 +201,11 @@ class Scraper:
             try:
                 response, final_url = self._get(url)
                 result = self._extract(url, response, final_url)
+                if response.status_code < 400 and not result.error:
+                    canonical = normalize_url(result.canonical_url or final_url)
+                    if canonical in seen_canonicals:
+                        continue
+                    seen_canonicals.add(canonical)
                 if response.status_code >= 400:
                     result.error = f"HTTP {response.status_code}"
                 results.append(result)
