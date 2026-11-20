@@ -21,4 +21,4 @@ t = t.replace(
     "let f=ALL.filter(x=>((MODE=='all')||(MODE=='cars'&&CAR_CATS.includes(x.category))||(MODE=='local'&&!CAR_CATS.includes(x.category)))&&(!cat||x.category==cat)"
 )
 p.write_text(t)
-print("toggle patched OK - cars:", len(CAR_CATS))
+print("toggle patched OK - cars: 8")
