@@ -1,0 +1,10 @@
+.git
+*.py
+*.md
+*.BACKUP*
+web-department/
+agents/
+app/
+config/
+database/
+docs/
