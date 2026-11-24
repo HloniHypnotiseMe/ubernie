@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Airbnb in South Africa | Ubernie - 19 Listings | Ubernie.co.za - South Africa's Trusted Car Services Marketplace</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,Arial}
+body{background:#0b0f0c;color:#fff}
+a{color:inherit;text-decoration:none}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 5%;background:#0a0d0a;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;font-size:22px;letter-spacing:.5px}.logo span{color:#7ED321}.logo small{color:#7ED321;font-size:11px}
+nav{display:flex;gap:18px;font-size:14px;opacity:.9}nav a:hover{color:#7ED321}
+.btn{background:#7ED321;color:#000;padding:10px 16px;border-radius:8px;font-weight:700;border:0;cursor:pointer}
+.btn-outline{border:1px solid #7ED321;color:#7ED321;padding:10px 14px;border-radius:8px;font-weight:700}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;padding:36px 5%;background:linear-gradient(180deg,#0b0f0c,#12210f)}
+.hero h1{font-size:38px;line-height:1.1}.hero h1 em{color:#7ED321;font-style:normal}
+.hero p{opacity:.75;margin:12px 0 18px}
+.search{display:flex;gap:8px;background:#fff;color:#111;padding:8px;border-radius:12px;flex-wrap:wrap}
+.search select,.search input{flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;min-width:140px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.pill{background:#1a241a;border:1px solid #2a3a2a;padding:7px 12px;border-radius:20px;font-size:13px;cursor:pointer}.pill.active{background:#7ED321;color:#000;font-weight:700}
+.hero-img{border-radius:14px;overflow:hidden;background:#1a241a;display:flex;align-items:center;justify-content:center;min-height:260px;text-align:center;padding:20px}
+.hero-img b{font-size:22px}.hero-img span{color:#7ED321}
+.bar{padding:14px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;padding:10px 5% 30px}
+.card{background:#fff;color:#111;border-radius:14px;overflow:hidden}
+.card-top{height:130px;background:linear-gradient(135deg,#1a2e1a,#7ED321);display:flex;align-items:center;justify-content:center;font-size:42px}
+.card-body{padding:14px}.card-body h3{font-size:16px}.muted{color:#666;font-size:13px}
+.stars{color:#f5a623;font-size:14px;margin:6px 0}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-top:10px}
+.score{background:#0b0f0c;color:#fff;border-radius:10px;padding:10px;text-align:center;min-width:86px}.score b{color:#7ED321;font-size:22px;display:block}
+.wa{background:#25D366;color:#fff;padding:8px 10px;border-radius:8px;font-weight:700;display:inline-block;margin-top:8px;font-size:13px}
+.claim{background:#000;color:#fff;padding:8px 10px;border-radius:8px;display:inline-block;margin-top:6px;font-size:13px;width:100%;text-align:center}
+.trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;padding:20px 5%;background:#12210f}
+.trust b{display:block}
+.cta{padding:28px 5%;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer{padding:18px 5%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;opacity:.7;font-size:13px;border-top:1px solid #222}
+@media(max-width:700px){.hero{grid-template-columns:1fr}nav{display:none}.hero h1{font-size:30px}}
+</style></head><body>
+<header><div class="logo">UBERNIE<span>.CO.ZA</span></div><nav><a href="#">Find Services</a><a href="#">Cars</a><a href="#">Food</a><a href="#">Health</a><a href="#">For Business</a></nav><div><a class="btn-outline" href="#list">List Your Business</a> <a class="btn" href="https://wa.me/27735558440?text=Hi%20Ubernie">Sign In</a></div></header>
+<section class="hero"><div><h1>South Africa's Trusted <em>Airbnb</em> Marketplace</h1><p>Find, compare and book verified mechanics, dealerships, restaurants, hotels, health, education and local services near you. 2,693 businesses. 9 provinces.</p>
+<div class="search"><select id="cat"><option value="">All Services</option><option>mechanic</option><option>dealership</option><option>spare parts</option><option>tyres</option><option>car wash</option><option>car rental</option></select><select id="prov"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select><input id="q" placeholder="Search name or area..."><button class="btn" onclick="render()">Search</button></div>
+<div class="pills" id="pills"></div><p id="count" style="margin-top:12px"></p></div>
+<div class="hero-img"><div><b>4.8/5</b><br>Trusted by 50,000+ South African drivers<br><br><span>VERIFIED PARTNERS - NO HIDDEN FEES</span></div></div></section>
+<div style="padding:10px 5%;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="btnAll" onclick="setMode('all')">All Businesses (2,693)</button><button class="btn-outline" id="btnCars" onclick="setMode('cars')">Cars Only (1,092)</button><button class="btn-outline" id="btnLocal" onclick="setMode('local')">Food / Health / Local</button></div><div style="padding:20px 5%;background:#00C853;color:#000"><h1 style="margin:0">Airbnb in South Africa - 19 Businesses</h1><p style="margin:4px 0 0">Find, compare, claim. Audit scores, monthly loss, RemotePay claim R499/mo. <a href="index.html" style="color:#000;font-weight:800">← Back to All</a></p></div><div class="bar"><h2>Popular in South Africa</h2><span id="total"></span></div>
+<div class="grid" id="list"></div>
+<section class="trust"><div><b>Why South Africans Trust Ubernie</b>All partners are vetted and verified.</div><div><b>Transparent Pricing</b>Compare quotes upfront, no hidden fees.</div><div><b>Real Reviews</b>Honest ratings from real customers.</div><div><b>Revenue Audit Score</b>We audit business health for your peace of mind.</div></section>
+<section class="cta" id="list"><div><h2>List your business and grow</h2><p>Reach thousands of car owners across South Africa.</p></div><a class="btn" href="https://wa.me/27735558440?text=Hi%20Ubernie,%20I%20want%20to%20list%20my%20business%20R499">Get Started - R499/mo</a></section>
+<footer><span>UBERNIE.CO.ZA</span><span>About - Contact - Help Centre - Terms - Privacy</span><span>2026 Ubernie.co.za - Made in South Africa</span></footer>
+<script>
+let ALL=[],CAT='';
+let cats=[]; const CAR_CATS=['mechanic','dealership','spare parts','car repair','car rental','tyres','car wash','automotive']; let MODE='all';
+function scoreFor(x){if(x.audit&&x.audit.score)return x.audit.score; if(x.revenue_hunter&&x.revenue_hunter.score)return x.revenue_hunter.score; let s=35;if(x.phone)s+=20;if(x.website)s+=15;if(x.rating)s+=15;return s}
+function icon(c){return c=='mechanic'?'MECH':c=='dealership'?'CAR':c=='tyres'?'TYRE':c=='car wash'?'WASH':c=='spare parts'?'PARTS':'RENT'}
+function waLink(x){let msg=encodeURIComponent('Hi, I found '+x.name+' on Ubernie.co.za');return 'https://wa.me/27735558440?text='+msg}
+async function load(){try{ALL=await (await fetch('listings.json')).json()}catch(e){document.getElementById('list').innerHTML='<p>listings.json not found</p>';return}cats=[...new Set(ALL.map(x=>x.category))].sort(); document.getElementById('cat').innerHTML='<option value="">All Services</option>'+cats.map(c=>'<option>'+c+'</option>').join(''); document.getElementById('total').textContent=ALL.length+' listings - '+cats.length+' categories - 9 provinces';document.getElementById('pills').innerHTML='<span class="pill active" onclick="setCat(\'\',this)">All</span>'+cats.map(c=>'<span class="pill" onclick="setCat(\''+c+'\',this)">'+c+'</span>').join('');render()}
+function setMode(m){MODE=m; document.getElementById('btnAll').className=m=='all'?'btn':'btn-outline'; document.getElementById('btnCars').className=m=='cars'?'btn':'btn-outline'; document.getElementById('btnLocal').className=m=='local'?'btn':'btn-outline'; render()} function setCat(c,el){CAT=c;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById('cat').value=c;render()}
+function render(){ if(window.FORCE_CAT){ var sel=document.getElementById('cat'); if(sel) sel.value=window.FORCE_CAT; cat=window.FORCE_CAT; }let q=(document.getElementById('q').value||'').toLowerCase(),cat=document.getElementById('cat').value||CAT,prov=document.getElementById('prov').value;let f=ALL.filter(x=>((MODE=='all')||(MODE=='cars'&&CAR_CATS.includes(x.category))||(MODE=='local'&&!CAR_CATS.includes(x.category)))&&(!cat||x.category==cat)&&(!prov||x.province==prov)&&(!q||(x.name+' '+x.area).toLowerCase().includes(q)));document.getElementById('count').textContent='Showing '+Math.min(f.length,60)+' of '+f.length+' results';document.getElementById('list').innerHTML=f.slice(0,60).map(x=>{let s=scoreFor(x),r=x.rating||4.6,rv=x.reviews||0;return '<div class="card"><div class="card-top">'+icon(x.category)+'</div><div class="card-body"><span style="background:#e6f7d4;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700">VERIFIED</span><h3>'+x.name+'</h3><div class="muted">'+(x.area||'')+', '+(x.province||'')+'</div><div class="stars">***** '+r+' ('+rv+' reviews)</div><div class="row"><div><div class="muted">'+(x.phone||'Phone: Not listed - Claim to add')+'</div><div class="muted">'+(x.category)+' - '+(x.audit&&x.audit.monthly_loss_estimate?'Losing ~R'+x.audit.monthly_loss_estimate+'/mo':'')+'</div><a class="wa" href="'+waLink(x)+'">WhatsApp</a></div><div class="score"><small>Revenue Audit</small><b>'+s+'</b><a class="claim" href="'+waLink(x)+'">Claim - R499/mo</a></div></div></div></div>'}).join('')||'<p>No results</p>'}
+document.getElementById('q').addEventListener('input',render);document.getElementById('cat').addEventListener('change',e=>{CAT=e.target.value;render()});document.getElementById('prov').addEventListener('change',render);load();
+</script><script>window.FORCE_CAT='airbnb'; window.FORCE_MODE='all';</script>
+</body></html>
