@@ -1,0 +1,61 @@
+import pathlib
+p = pathlib.Path("categories.html")
+# Rebuild with proper structure - same data, no new counts
+html = """<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ubernie Categories | All Categories South Africa</title></head>
+<body style='font-family:sans-serif;padding:20px'>
+<h1>UBERNIE Categories</h1>
+<h2>All Categories</h2>
+<ul>
+<li><a href="accommodation.html">Accommodation - 105</a></li>
+<li><a href="airbnb.html">Airbnb - 19</a></li>
+<li><a href="automotive.html">Car-La-Hurry - Automotive - 35</a></li>
+<li><a href="beauty.html">Buhle - Beauty - 48</a></li>
+<li><a href="cafe.html">Idla Nathi - Cafe - 181</a></li>
+<li><a href="car-rental.html">Car-La-Hurry - Car Rental - 60</a></li>
+<li><a href="car-repair.html">Car-La-Hurry - Car Repair - 85</a></li>
+<li><a href="car-wash.html">Car-La-Hurry - Car Wash - 40</a></li>
+<li><a href="day-care.html">Sgela - Day-Care - 17</a></li>
+<li><a href="dealership.html">Car-La-Hurry - Dealership - 242</a></li>
+<li><a href="education.html">Sgela - Education - 216</a></li>
+<li><a href="electronics.html">Electronics - 1</a></li>
+<li><a href="fashion.html">Sdwadlo - Fashion - 10</a></li>
+<li><a href="fitness.html">Fitness - 20</a></li>
+<li><a href="food.html">Idla Nathi - Food - 93</a></li>
+<li><a href="grocery.html">Grocery - 73</a></li>
+<li><a href="hairdresser.html">Buhle - Hairdresser - 82</a></li>
+<li><a href="health.html">Health - 168</a></li>
+<li><a href="hotel.html">Hotel - 142</a></li>
+<li><a href="liquor.html">DrinkingWell - Liquor - 13</a></li>
+<li><a href="mechanic.html">Car-La-Hurry - Mechanic - 285</a></li>
+<li><a href="pets.html">Pets - 6</a></li>
+<li><a href="pharmacy.html">Pharmacy - 95</a></li>
+<li><a href="property.html">Property - 23</a></li>
+<li><a href="restaurant.html">Idla Nathi - Restaurant - 240</a></li>
+<li><a href="services.html">Services - 13</a></li>
+<li><a href="spare-parts.html">Car-La-Hurry - Spare Parts - 159</a></li>
+<li><a href="supermarket.html">Supermarket - 162</a></li>
+<li><a href="tyres.html">Car-La-Hurry - Tyres - 60</a></li>
+<li><a href="funeral.html">Last Rest - Funeral</a></li>
+<li><a href="drinkingwell.html">DrinkingWell - Bars</a></li>
+</ul>
+<p><a href="deals.html" style="font-weight:800;color:#000;background:#FFD600;padding:8px 14px;border-radius:8px">🔥 CLAIM VOUCHER - Deals Corner</a></p>
+<footer style="margin-top:30px;border-top:1px solid #ddd;padding-top:12px">
+<p><a href="index.html">Home</a> | <a href="deals.html">Deals Corner</a> | <a href="drinkingwell.html">DrinkingWell</a> | <a href="funeral.html">Last Rest</a></p>
+<p>Terms - Privacy - About - Contact</p>
+</footer>
+</body></html>
+"""
+p.write_text(html)
+print("categories rebuilt - same counts, proper structure")
+
+# Fix last 4 x 9/10 pages - H1 brand
+import re
+for fname, brand in [("car-rental.html","CAR-LA-HURRY"),("car-repair.html","CAR-LA-HURRY"),("day-care.html","SGELA"),("spare-parts.html","CAR-LA-HURRY")]:
+    t = pathlib.Path(fname).read_text()
+    m = re.search(r'<h1[^>]*>(.*?)</h1>', t, re.I|re.S)
+    if m and brand not in re.sub(r'<[^>]+>','',m.group(1)).upper():
+        t = t.replace(m.group(0), m.group(0).replace(m.group(1), f"{brand} - {m.group(1)}"), 1)
+        pathlib.Path(fname).write_text(t)
+        print(f"fixed H1 {fname}")
