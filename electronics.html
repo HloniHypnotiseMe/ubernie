@@ -33,7 +33,7 @@ nav{display:flex;gap:18px;font-size:14px;opacity:.9}nav a:hover{color:#7ED321}
 .cta{padding:28px 5%;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
 footer{padding:18px 5%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;opacity:.7;font-size:13px;border-top:1px solid #222}
 @media(max-width:700px){.hero{grid-template-columns:1fr}nav{display:none}.hero h1{font-size:30px}}
-</style></head><body>
+.upsell{border:1px solid #eee;border-radius:10px;padding:10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}.upsell label{font-size:14px}.price{font-weight:800}.modal-content input{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:10px}.btn{display:block;text-align:center;text-decoration:none;padding:11px;border-radius:10px;font-weight:700;margin-top:8px;cursor:pointer;border:none;width:100%;font-size:15px}.btn-green{background:#25D366;color:#fff}.btn-dark{background:#111;color:#fff}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;overflow:auto}.modal-content{background:#fff;max-width:520px;margin:30px auto;padding:24px;border-radius:16px;color:#111}</style></head><body>
 <header><div class="logo">UBERNIE<span>.CO.ZA</span></div><nav><a href="categories.html">Find Services</a><a href="categories.html">Cars</a><a href="categories.html">Food</a><a href="categories.html">Health</a><a href="categories.html">For Business</a><a href="deals.html" style="color:#FFD600;font-weight:800">Deals Corner</a></nav><div><a class="btn-outline" href="#list">List Your Business</a> <a class="btn" href="https://wa.me/27735558440?text=Hi%20Ubernie">Sign In</a></div></header>
 <section class="hero"><div><h1>UBERNIE - South Africa's Trusted <em>Electronics</em> Marketplace</h1><p>Find verified electronics stores near you. Prices, repairs, reviews. 1 store - more coming.</p>
 <div class="search"><select id="cat"><option value="">All Services</option><option>mechanic</option><option>dealership</option><option>spare parts</option><option>tyres</option><option>car wash</option><option>car rental</option></select><select id="prov"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select><input id="q" placeholder="Search name or area..."><button class="btn" onclick="render()">Search</button></div>
@@ -52,7 +52,93 @@ function icon(c){return c=='mechanic'?'MECH':c=='dealership'?'CAR':c=='tyres'?'T
 function waLink(x){let msg=encodeURIComponent('Hi, I found '+x.name+' on Ubernie.co.za');return 'https://wa.me/27735558440?text='+msg}
 async function load(){try{ALL=await (await fetch('listings.json')).json()}catch(e){document.getElementById('list').innerHTML='<p>listings.json not found</p>';return}cats=[...new Set(ALL.map(x=>x.category))].sort(); document.getElementById('cat').innerHTML='<option value="">All Services</option>'+cats.map(c=>'<option>'+c+'</option>').join(''); document.getElementById('total').textContent=ALL.length+' listings - '+cats.length+' categories - 9 provinces';document.getElementById('pills').innerHTML='<span class="pill active" onclick="setCat(\'\',this)">All</span>'+cats.map(c=>'<span class="pill" onclick="setCat(\''+c+'\',this)">'+c+'</span>').join('');render()}
 function setMode(m){MODE=m; document.getElementById('btnAll').className=m=='all'?'btn':'btn-outline'; document.getElementById('btnCars').className=m=='cars'?'btn':'btn-outline'; document.getElementById('btnLocal').className=m=='local'?'btn':'btn-outline'; render()} function setCat(c,el){CAT=c;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById('cat').value=c;render()}
-function render(){ if(window.FORCE_CAT){ var sel=document.getElementById('cat'); if(sel) sel.value=window.FORCE_CAT; cat=window.FORCE_CAT; }let q=(document.getElementById('q').value||'').toLowerCase(),cat=document.getElementById('cat').value||CAT,prov=document.getElementById('prov').value;let f=ALL.filter(x=>((MODE=='all')||(MODE=='cars'&&CAR_CATS.includes(x.category))||(MODE=='local'&&!CAR_CATS.includes(x.category)))&&(!cat||x.category==cat)&&(!prov||x.province==prov)&&(!q||(x.name+' '+x.area).toLowerCase().includes(q)));document.getElementById('count').textContent='Showing '+Math.min(f.length,60)+' of '+f.length+' results';document.getElementById('list').innerHTML=f.slice(0,60).map(x=>{let s=scoreFor(x),r=x.rating||4.6,rv=x.reviews||0;return '<div class="card"><div class="card-top">'+icon(x.category)+'</div><div class="card-body"><span style="background:#e6f7d4;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700">VERIFIED</span><h3>'+x.name+'</h3><div class="muted">'+(x.area||'')+', '+(x.province||'')+'</div><div class="stars">***** '+r+' ('+rv+' reviews)</div><div class="row"><div><div class="muted">'+(x.phone||'Claim to add phone & verify')+'</div><div class="muted">'+(x.category)+' - '+(x.audit&&x.audit.monthly_loss_estimate?'Losing ~R'+x.audit.monthly_loss_estimate+'/mo':'')+'</div><a class="wa" href="'+waLink(x)+'">WhatsApp</a></div><div class="score"><small>Revenue Audit</small><b>'+s+'</b><a class="claim" href="'+waLink(x)+'">Claim - R499/mo</a></div></div></div></div>'}).join('')||'<p>No results</p>'}
+function render(){ if(window.FORCE_CAT){ var sel=document.getElementById('cat'); if(sel) sel.value=window.FORCE_CAT; cat=window.FORCE_CAT; }let q=(document.getElementById('q').value||'').toLowerCase(),cat=document.getElementById('cat').value||CAT,prov=document.getElementById('prov').value;let f=ALL.filter(x=>((MODE=='all')||(MODE=='cars'&&CAR_CATS.includes(x.category))||(MODE=='local'&&!CAR_CATS.includes(x.category)))&&(!cat||x.category==cat)&&(!prov||x.province==prov)&&(!q||(x.name+' '+x.area).toLowerCase().includes(q)));document.getElementById('count').textContent='Showing '+Math.min(f.length,60)+' of '+f.length+' results';document.getElementById('list').innerHTML=f.slice(0,60).map(x=>{let s=scoreFor(x),r=x.rating||4.6,rv=x.reviews||0;return '<div class="card"><div class="card-top">'+icon(x.category)+'</div><div class="card-body"><span style="background:#e6f7d4;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700">VERIFIED</span><h3>'+x.name+'</h3><div class="muted">'+(x.area||'')+', '+(x.province||'')+'</div><div class="stars">***** '+r+' ('+rv+' reviews)</div><div class="row"><div><div class="muted">'+(x.phone||'Claim to add phone & verify')+'</div><div class="muted">'+(x.category)+' - '+(x.audit&&x.audit.monthly_loss_estimate?'Losing ~R'+x.audit.monthly_loss_estimate+'/mo':'')+'</div><a class="wa" href="'+waLink(x)+'">WhatsApp</a></div><div class="score"><small>Revenue Audit</small><b>'+s+'</b><a class="claim" href="javascript:void(0)" onclick="openClaim(ALL.indexOf(x))">Claim - FREE Audit</a></div></div></div></div>'}).join('')||'<p>No results</p>'}
 document.getElementById('q').addEventListener('input',render);document.getElementById('cat').addEventListener('change',e=>{CAT=e.target.value;render()});document.getElementById('prov').addEventListener('change',render);load();
 </script><script>window.FORCE_CAT='electronics'; window.FORCE_MODE='all';</script>
-</body></html>
+<div class="modal" id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;overflow:auto"><div class="modal-content" id="modalContent" style="background:#fff;max-width:520px;margin:30px auto;padding:24px;border-radius:16px;color:#111"></div></div><script>
+const MY_WA="27735558440";
+const REMOTEPAY = {
+  paymentLinks: {
+    website: 'https://pay.simplyblu.co.za/website-1499',
+    photos: 'https://pay.simplyblu.co.za/photos-799',
+    whatsapp: 'https://pay.simplyblu.co.za/whatsapp-499',
+    google: 'https://pay.simplyblu.co.za/google-699',
+    hours: 'https://pay.simplyblu.co.za/hours-499',
+    featured: 'https://pay.simplyblu.co.za/featured-299',
+    domain: 'https://pay.simplyblu.co.za/domain-299',
+    web_hosting: 'https://pay.simplyblu.co.za/hosting-999',
+    email_hosting: 'https://pay.simplyblu.co.za/email-599',
+    logo: 'https://pay.simplyblu.co.za/logo-499',
+    care_plan: 'https://pay.simplyblu.co.za/careplan-499',
+    ad_top: 'https://pay.simplyblu.co.za/ad-top-999',
+    ad_sponsored: 'https://pay.simplyblu.co.za/ad-499',
+  },
+  whatomateWebhook: 'https://api.whatomate.com/webhook/YOUR-WHATOMATE-ID',
+  fallbackWA: MY_WA,
+};
+function openClaim(idx){
+ let x=(typeof ALL!=='undefined'?ALL:(window.data||window.listings||[]))[idx]; if(!x){alert('Listing not found');return;}
+ let au=x.audit||{missing:[],score:0};
+ let services=[
+  {id:'website',label:'🌐 Professional Website (1 page)',price:1499,checked:!au.has_website},
+  {id:'photos',label:'📸 Professional Photos + Google Photos',price:799,checked:!au.has_photos},
+  {id:'whatsapp',label:'💬 WhatsApp Business Setup + Button',price:499,checked:!au.has_whatsapp},
+  {id:'google',label:'📍 Google Business Profile Fix',price:699,checked:!au.has_rating},
+  {id:'hours',label:'🕐 Opening Hours + Booking System',price:499,checked:!au.has_hours},
+  {id:'featured',label:'⭐ Featured on Ubernie - Top of Search (30 days)',price:299,checked:true},
+  {id:'domain',label:'🌐 Domain Registration - yourbusiness.co.za (1 year)',price:299,checked:false},
+  {id:'web_hosting',label:'☁️ Web Hosting - Fast + Secure + SSL (1 year)',price:999,checked:false},
+  {id:'email_hosting',label:'📧 Email Hosting - info@yourbusiness.co.za (5 mailboxes / year)',price:599,checked:false},
+  {id:'logo',label:'🎨 Logo + Business Card Design',price:499,checked:false},
+ ];
+ window._claimServices=services; window._claimBiz=x;
+ let html=`<h2>⭐ Claim: ${x.name}</h2><p style="color:#666">${x.address||''} - ${x.area||''}</p>
+ <div style="background:#ffebee;padding:12px;border-radius:10px"><b>🔍 YOUR FREE AUDIT: ${au.score}/100</b><br>Missing: ${(au.missing||[]).join(', ').replaceAll('_',' ')}<br><small>You are losing customers every day without these.</small></div>
+ <h3>👤 Your Details</h3>
+ <input id="ownerName" placeholder="Your Full Name *"><input id="ownerPhone" placeholder="Your WhatsApp Number *"><input id="ownerEmail" placeholder="Email">
+ <h3>🛒 Fix My Missing Services (Tick what you want)</h3>
+ ${services.map((s,i)=>`<div class="upsell"><label><input type="checkbox" ${s.checked?'checked':''} onchange="toggleService(${i},this.checked)"> ${s.label}</label><span class="price">R${s.price}</span></div>`).join('')}
+ <div style="text-align:right;font-weight:800;font-size:18px" id="total">Total: R<span id="totalVal">0</span> <small style="font-weight:400">(Claim itself is FREE)</small></div>
+ <button class="btn btn-green" onclick="submitClaim()">✅ CLAIM + Send Audit on WhatsApp</button>
+ <div style="text-align:center;margin:8px 0;font-size:13px;color:#666">OR Pay Instantly via RemotePay / SimplyBlu (Card) - No waiting</div>
+ <button class="btn btn-dark" onclick="payNowClaim()">💳 PAY NOW - Secure Card via SimplyBlu</button>
+ <div id="payLinks" style="display:none;margin-top:10px"></div>
+ <button class="btn btn-dark" onclick="closeModal()">Close</button>`;
+ let mc=document.getElementById('modalContent')||document.getElementById('auditModalBody');
+ if(!mc){alert('No modal container');return;}
+ mc.innerHTML=html; (document.getElementById('modal')||document.getElementById('auditModal')).style.display='block'; updateTotal();
+}
+function toggleService(i,checked){window._claimServices[i].checked=checked; updateTotal();}
+function updateTotal(){let t=window._claimServices.filter(s=>s.checked).reduce((a,s)=>a+s.price,0); document.getElementById('totalVal').textContent=t;}
+function submitClaim(){
+ let name=document.getElementById('ownerName').value; let phone=document.getElementById('ownerPhone').value;
+ if(!name||!phone){alert('Please enter your name + WhatsApp number'); return;}
+ let x=window._claimBiz; let chosen=window._claimServices.filter(s=>s.checked);
+ let total=chosen.reduce((a,s)=>a+s.price,0);
+ let msg=`🔥 UBernie CLAIM REQUEST\n\nBusiness: ${x.name}\nArea: ${x.area}\nAddress: ${x.address}\nAudit Score: ${x.audit.score}/100\nMissing: ${(x.audit.missing||[]).join(', ')}\n\nOwner: ${name}\nPhone: ${phone}\nEmail: ${document.getElementById('ownerEmail').value}\n\nServices Wanted:\n${chosen.map(s=>`- ${s.label} - R${s.price}`).join('\n')}\n\nTOTAL UPSELL: R${total}\nClaim Fee: FREE`;
+ window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent(msg)}`,'_blank');
+ alert('✅ Claim sent! We will WhatsApp you with your audit + quote.'); closeModal();
+}
+function closeModal(){let m=document.getElementById('modal')||document.getElementById('auditModal'); if(m)m.style.display='none';}
+function sendToWhatomate(payload){
+  try{fetch(REMOTEPAY.whatomateWebhook, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).catch(()=>{});}catch(e){}
+  // no WhatsApp here - payNowClaim shows pay links, submitClaim handles WhatsApp
+  if(false){ const msg = `🔥 UBernie CLAIM REQUEST\n\nBusiness: ${payload.business}\nArea: ${payload.area}\nAudit: ${payload.audit}/100\nOwner: ${payload.owner}\nPhone: ${payload.phone}\nServices: ${payload.services.map(s=>s.label+' R'+s.price).join(', ')}\nTotal: R${payload.total}`;
+  window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function payNowClaim(){
+  let name=document.getElementById('ownerName').value; let phone=document.getElementById('ownerPhone').value;
+  if(!name||!phone){alert('Please enter your name + WhatsApp number first'); return;}
+  let chosen=window._claimServices.filter(s=>s.checked);
+  if(chosen.length===0){alert('Tick at least 1 service to pay for'); return;}
+  sendToWhatomate({type:'claim_pay_attempt', business: window._claimBiz.name, area: window._claimBiz.area, audit: window._claimBiz.audit.score, owner: name, phone: phone, email: document.getElementById('ownerEmail').value, services: chosen, total: chosen.reduce((a,s)=>a+s.price,0)});
+  let html = chosen.map(s=>{
+    let link = REMOTEPAY.paymentLinks[s.id] || '#';
+    return `<a href="${link}" target="_blank" style="display:block;background:#f6f6f6;padding:10px;border-radius:10px;margin:6px 0;text-decoration:none;color:#111">💳 Pay ${s.label} - <b>R${s.price}</b> → Pay via SimplyBlu</a>`;
+  }).join('');
+  html += `<p style="font-size:12px;color:#666">After payment, Whatomate will auto-send your receipt + next steps on WhatsApp. Powered by RemotePay.</p>`;
+  document.getElementById('payLinks').innerHTML = html;
+  document.getElementById('payLinks').style.display='block';
+  alert('✅ Claim sent to Whatomate! Now tap a Pay link below to pay by card.');
+}
+</script></body></html>
