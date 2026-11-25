@@ -1,70 +1,53 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Business Sign In - Ubernie</title>
-<style>body{font-family:system-ui;max-width:420px;margin:0 auto;padding:20px} input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:8px} button{background:#111;color:#fff;padding:12px;width:100%;border:0;border-radius:8px} .box{border:1px solid #eee;padding:16px;border-radius:12px;margin-top:16px}</style>
-
-
-<style id="ubernie-mobile-fix">
-/* ===== MOBILE FIX - Ubernie ===== */
-*{max-width:100%;box-sizing:border-box}
-html,body{overflow-x:hidden}
-img,video,iframe{max-width:100%;height:auto}
-/* Nav - stack, don't overflow */
-nav,.nav,.header,.topbar{flex-wrap:wrap!important;gap:8px!important}
-nav a,.nav a{padding:10px 8px!important;font-size:14px!important;white-space:normal!important}
-/* Hero */
-.hero,.banner{padding:24px 16px!important;text-align:center}
-.hero h1,.banner h1{font-size:28px!important;line-height:1.15!important}
-.hero p{font-size:15px!important}
-/* Grids -> 1 col on phone, 2 on tablet */
-.grid,.cards,.listings,.categories{grid-template-columns:1fr!important;gap:12px!important}
-.card{padding:14px!important}
-/* Buttons - full width, thumb size */
-button,.btn,.cta,a.button{min-height:48px!important;padding:12px 16px!important;font-size:15px!important}
-/* Forms */
-input,select,textarea{width:100%!important;font-size:16px!important;padding:12px!important}
-/* Tables - scroll, don't break */
-table{display:block!important;overflow-x:auto!important;white-space:nowrap}
-.sidebar,.filter{width:100%!important;position:static!important;margin-bottom:16px}
-@media(min-width:640px){
-  .grid,.cards,.listings,.categories{grid-template-columns:repeat(2,1fr)!important}
-}
-@media(min-width:1024px){
-  .grid,.cards,.listings{grid-template-columns:repeat(3,1fr)!important}
-  .categories{grid-template-columns:repeat(4,1fr)!important}
-}
-</style>
-</head><body>
+<style>*{box-sizing:border-box}body{font-family:system-ui;max-width:420px;margin:0 auto;padding:20px;background:#f8f8f8}input{width:100%;padding:14px;margin:8px 0;border:1px solid #ddd;border-radius:10px;font-size:16px}button{background:#111;color:#fff;padding:14px;width:100%;border:0;border-radius:10px;font-size:16px;min-height:48px}button:disabled{opacity:.5}.box{border:1px solid #eee;padding:18px;border-radius:14px;margin-top:16px;background:#fff}.otp-box{display:none}</style></head><body>
 <h1>Business Sign In</h1>
 <p>Sign in to manage your listing, KYC status, deals & payouts.</p>
-<div class="box">
-<input id="phone" placeholder="WhatsApp / Phone e.g. +27 82...">
-<input id="email" placeholder="Email used to claim">
-<button onclick="signin()">Send OTP / Sign In →</button>
+<div class="box" id="loginBox">
+<input id="phone" placeholder="WhatsApp / Phone e.g. 072..." inputmode="tel">
+<input id="email" placeholder="Email used to claim" inputmode="email">
+<button id="sendBtn" onclick="signin()">Send OTP / Sign In →</button>
 <p id="msg" style="color:#666"></p>
-<p><small>New here? <a href="claim.html">Claim Your Business - FREE</a> first. Claim → KYC → Approve → then you can sign in.</small></p>
+<p><small>New here? <a href="claim.html">Claim Your Business - FREE</a> first.</small></p>
+</div>
+<div class="box otp-box" id="otpBox">
+<h3>Enter OTP sent to <span id="otpPhone"></span></h3>
+<p style="color:#666;font-size:14px">Demo mode: OTP shown below.</p>
+<input id="otp" placeholder="123456" inputmode="numeric" maxlength="6">
+<p id="demoOtp" style="background:#fef3c7;padding:10px;border-radius:8px;font-weight:700;text-align:center"></p>
+<button onclick="verifyOTP()">Verify OTP →</button>
+<p id="otpMsg"></p>
 </div>
 <div class="box" id="dash" style="display:none">
-<h3 id="bizName">Your Business</h3>
-<p>Status: <b id="status">-</b></p>
-<p id="nextStep"></p>
+<h3 id="bizName">Your Business</h3><p>Status: <b id="status">-</b></p><p id="nextStep"></p>
 <a href="index.html"><button>Back to Directory</button></a>
 </div>
 <script>
+let currentOTP="";
+function normPhone(p){ p=p.replace(/[\s\-\(\)]/g,""); if(p.startsWith("0")) p="+27"+p.slice(1); if(p.startsWith("27")&&!p.startsWith("+")) p="+"+p; return p; }
+function getClaims(){ try{return JSON.parse(localStorage.getItem("ubernie_claims")||"[]")}catch(e){return[]} }
 async function signin(){
-  let phone=document.getElementById('phone').value.trim();
-  let email=document.getElementById('email').value.trim();
-  if(!phone){document.getElementById('msg').textContent='Enter phone'; return;}
+  let phone=document.getElementById('phone').value.trim(); let email=document.getElementById('email').value.trim();
+  if(!phone){document.getElementById('msg').textContent='Enter phone';return;}
   document.getElementById('msg').textContent='Checking claim...';
-  // TODO: backend will check claims table by phone/email
-  // For now: check local backend if running, else show pending flow
-  try{
-    let r=await fetch('http://localhost:3000/api/claims',{headers:{'x-admin-key':'public-check'}});
-    // backend returns 401 for public - so we fallback to claim flow
-    throw new Error('use claim flow');
-  }catch(e){
-    document.getElementById('dash').style.display='block';
-    document.getElementById('status').textContent='PENDING - Check your claim';
-    document.getElementById('nextStep').textContent='If you already claimed, we will WhatsApp your OTP once KYC is approved. If not claimed yet, claim now.';
-    document.getElementById('msg').textContent='No verified login yet - complete Claim + KYC first.';
-  }
+  await new Promise(r=>setTimeout(r,600));
+  let claims=getClaims();
+  let found=claims.find(c=>normPhone(c.phone||"")===normPhone(phone)||(email&&(c.email||"").toLowerCase()===email.toLowerCase()));
+  // FIX: Always send OTP, even if claim is on another device - don't block login
+  // If no local claim, we still let them in and show PENDING, and email claims@
+  currentOTP=String(Math.floor(100000+Math.random()*900000));
+  document.getElementById('loginBox').style.display='none';
+  document.getElementById('otpBox').style.display='block';
+  document.getElementById('otpPhone').textContent=phone;
+  document.getElementById('demoOtp').textContent="Your OTP: "+currentOTP;
+  document.getElementById('otpMsg').textContent=found?("Claim found: "+(found.biz||found.business||"Your Business")+" - "+(found.status||"PENDING")):"No local claim found on THIS device/browser (claims don't sync across devices yet). OTP still sent - verify to continue, then re-claim if needed.";
+  localStorage.setItem("ubernie_pending_signin", JSON.stringify({phone: normPhone(phone), email, found: !!found}));
+}
+function verifyOTP(){
+  if(document.getElementById('otp').value.trim()!==currentOTP){document.getElementById('otpMsg').textContent='Wrong OTP - OTP is shown above';document.getElementById('otpMsg').style.color='red';return;}
+  document.getElementById('otpBox').style.display='none'; document.getElementById('dash').style.display='block';
+  let saved=JSON.parse(localStorage.getItem("ubernie_pending_signin")||"{}");
+  let claims=getClaims(); let found=claims.find(c=>normPhone(c.phone||"")===normPhone(saved.phone||"")||(saved.email&&(c.email||"").toLowerCase()===saved.email.toLowerCase()));
+  if(found){document.getElementById('bizName').textContent=found.biz||found.business||"Your Business";document.getElementById('status').textContent=(found.status||"PENDING").toUpperCase();document.getElementById('nextStep').textContent="You're signed in. KYC is "+(found.status||"PENDING")+".";}
+  else{document.getElementById('bizName').textContent="Your Business";document.getElementById('status').textContent="PENDING - No Local Claim";document.getElementById('nextStep').textContent="You claimed on a different device/browser, or haven't claimed yet. Claim on THIS device now, or email claims@ubernie.co.za with your phone "+saved.phone+" and we'll link it.";}
 }
 </script></body></html>
