@@ -1,0 +1,32 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Business - Ubernie</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>body{font-family:system-ui;padding:16px;max-width:900px;margin:auto} #map{height:300px;border-radius:12px;margin:16px 0} .badge{background:#16a34a;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px} .free{background:#999} .btn{display:inline-block;background:#111;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;margin:6px 6px 0 0} input,textarea{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px}</style>
+</head><body>
+<a href="index.html">← Back to Ubernie</a>
+<h1 id="name">Loading...</h1>
+<p><span id="badge" class="badge free">FREE LISTING</span> <span id="area"></span> • <span id="category"></span></p>
+<div id="map"></div>
+<div id="details"></div>
+<h3>Get Quote / Lead</h3>
+<input id="leadName" placeholder="Your name">
+<input id="leadPhone" placeholder="Your phone">
+<textarea id="leadMsg" placeholder="What do you need?"></textarea>
+<button class="btn" onclick="sendLead()">Send Lead</button>
+<p id="leadResult"></p>
+<p><a href="legal/privacy.html">Privacy</a> • <a href="legal/terms.html">Terms</a> • <a href="legal/cookies.html">Cookies</a></p>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const id = params.get('id') || 1;
+// Demo data until DB is seeded - Johannesburg default
+const demo = {name:"Demo Restaurant - Soweto", area:"Soweto, Johannesburg", category:"restaurant", phone:"077 000 0000", lat:-26.234, lng:27.910, verified:0, address:"Vilakazi Street, Soweto"};
+document.getElementById('name').textContent = demo.name;
+document.getElementById('area').textContent = demo.area;
+document.getElementById('category').textContent = demo.category;
+const map = L.map('map').setView([demo.lat, demo.lng], 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+if(demo.verified){ L.marker([demo.lat,demo.lng]).addTo(map).bindPopup(demo.name).openPopup(); document.getElementById('badge').textContent='✓ VERIFIED'; document.getElementById('badge').classList.remove('free'); document.getElementById('details').innerHTML='<p><b>Phone:</b> '+demo.phone+'</p><p><b>Address:</b> '+demo.address+'</p><p>Full menu, photos, hours - Paid Verified only.</p>'; }
+else { document.getElementById('details').innerHTML='<p><b>Phone:</b> Hidden - Free listing</p><p><b>Map:</b> Area only - exact pin is Verified only</p><p><a class="btn" href="restaurant.html">Claim This Business - FREE</a></p>'; }
+async function sendLead(){ const r=await fetch('http://localhost:8001/api/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business_id:Number(id),owner_name:document.getElementById('leadName').value,owner_phone:document.getElementById('leadPhone').value,upsells:document.getElementById('leadMsg').value,plan:'lead',total:0})}); const j=await r.json(); document.getElementById('leadResult').textContent = j.ok ? 'Lead sent - business will WhatsApp you.' : 'Failed, try WhatsApp.'; }
+</script></body></html>
