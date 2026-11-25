@@ -4,11 +4,13 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import socket
-from datetime import datetime, timezone
+import uuid
+from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
 
 import httpx
+from sqlalchemy import and_, or_, update
 from sqlalchemy.orm import Session
 
 from db.models import IntelligenceJob, IntelligenceSource
@@ -119,12 +121,151 @@ async def fetch_permitted_html(url: str, requests_per_minute: int) -> bytes:
             raise CollectionBlocked("http_fetch_failed") from exc
 
 
+LEASE_SECONDS = 300
+
+
+def _claim_job(db: Session, job_id: str, token: str) -> None:
+    now = _now()
+    lease_expiry = now + timedelta(seconds=LEASE_SECONDS)
+
+    # Expired legacy jobs at the attempt ceiling must not remain running forever.
+    db.execute(
+        update(IntelligenceJob)
+        .where(
+            IntelligenceJob.id == job_id,
+            IntelligenceJob.status == "running",
+            IntelligenceJob.attempts >= MAX_ATTEMPTS,
+            or_(
+                IntelligenceJob.lease_expires_at.is_(None),
+                IntelligenceJob.lease_expires_at <= now,
+            ),
+        )
+        .values(
+            status="failed",
+            error_code="job_attempt_limit",
+            finished_at=now,
+            worker_token=None,
+            lease_expires_at=None,
+        )
+    )
+
+    eligible_status = or_(
+        IntelligenceJob.status.in_(("queued", "failed")),
+        and_(
+            IntelligenceJob.status == "running",
+            or_(
+                IntelligenceJob.lease_expires_at.is_(None),
+                IntelligenceJob.lease_expires_at <= now,
+            ),
+        ),
+    )
+
+    result = db.execute(
+        update(IntelligenceJob)
+        .where(
+            IntelligenceJob.id == job_id,
+            IntelligenceJob.attempts < MAX_ATTEMPTS,
+            eligible_status,
+        )
+        .values(
+            status="running",
+            attempts=IntelligenceJob.attempts + 1,
+            worker_token=token,
+            lease_expires_at=lease_expiry,
+            started_at=now,
+            finished_at=None,
+            error_code=None,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    db.commit()
+
+    if result.rowcount != 1:
+        db.rollback()
+        current = db.get(IntelligenceJob, job_id)
+        if current is not None and current.attempts >= MAX_ATTEMPTS:
+            raise ValueError("job_attempt_limit")
+        raise ValueError("job_not_runnable")
+
+
+def _renew_lease(db: Session, job_id: str, token: str) -> None:
+    now = _now()
+    result = db.execute(
+        update(IntelligenceJob)
+        .where(
+            IntelligenceJob.id == job_id,
+            IntelligenceJob.status == "running",
+            IntelligenceJob.worker_token == token,
+        )
+        .values(lease_expires_at=now + timedelta(seconds=LEASE_SECONDS))
+        .execution_options(synchronize_session=False)
+    )
+    db.commit()
+
+    if result.rowcount != 1:
+        db.rollback()
+        raise ValueError("job_ownership_lost")
+
+
+def _finish_job(
+    db: Session,
+    job_id: str,
+    token: str,
+    status: str,
+) -> None:
+    result = db.execute(
+        update(IntelligenceJob)
+        .where(
+            IntelligenceJob.id == job_id,
+            IntelligenceJob.status == "running",
+            IntelligenceJob.worker_token == token,
+        )
+        .values(
+            status=status,
+            finished_at=_now(),
+            worker_token=None,
+            lease_expires_at=None,
+            error_code=None,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    db.commit()
+
+    if result.rowcount != 1:
+        db.rollback()
+        raise ValueError("job_ownership_lost")
+
+
+def _fail_owned_job(
+    db: Session,
+    job_id: str,
+    token: str,
+    error_code: str,
+) -> bool:
+    result = db.execute(
+        update(IntelligenceJob)
+        .where(
+            IntelligenceJob.id == job_id,
+            IntelligenceJob.status == "running",
+            IntelligenceJob.worker_token == token,
+        )
+        .values(
+            status="failed",
+            error_code=error_code,
+            finished_at=_now(),
+            worker_token=None,
+            lease_expires_at=None,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    db.commit()
+    return result.rowcount == 1
+
+
 async def execute_job(db: Session, job_id: str) -> dict:
     job = db.get(IntelligenceJob, job_id)
     if job is None:
         raise ValueError("job_not_found")
-    if job.status not in ("queued", "failed"):
-        raise ValueError("job_not_runnable")
     if job.attempts >= MAX_ATTEMPTS:
         raise ValueError("job_attempt_limit")
 
@@ -134,21 +275,28 @@ async def execute_job(db: Session, job_id: str) -> dict:
     if _host(job.requested_url) != urlparse(source.base_url).hostname:
         raise ValueError("source_host_mismatch")
 
-    job.status = "running"
-    job.attempts += 1
-    job.started_at = _now()
-    job.error_code = None
-    db.commit()
+    source_id = source.id
+    requests_per_minute = source.requests_per_minute
+    token = str(uuid.uuid4())
+
+    _claim_job(db, job_id, token)
 
     try:
-        html = await fetch_permitted_html(job.requested_url, source.requests_per_minute)
+        html = await fetch_permitted_html(
+            job.requested_url,
+            requests_per_minute,
+        )
         records = extract_business_entities(html, job.requested_url)
+
         created = 0
         duplicates = 0
+
         for record in records:
+            _renew_lease(db, job_id, token)
+
             candidate, duplicate = ingest_candidate(
                 db,
-                source_id=source.id,
+                source_id=source_id,
                 source_url=job.requested_url,
                 business_name=record.pop("business_name") or "",
                 created_fields=record,
@@ -156,25 +304,37 @@ async def execute_job(db: Session, job_id: str) -> dict:
             duplicates += int(duplicate)
             created += int(not duplicate)
 
-        job.status = "completed" if records else "completed_no_candidates"
-        job.finished_at = _now()
-        db.commit()
+        _renew_lease(db, job_id, token)
+
+        final_status = (
+            "completed" if records else "completed_no_candidates"
+        )
+        _finish_job(db, job_id, token, final_status)
+
         return {
-            "job_id": job.id,
-            "status": job.status,
+            "job_id": job_id,
+            "status": final_status,
             "pages_fetched": 1,
             "candidates_created": created,
             "duplicates_detected": duplicates,
         }
+
     except CollectionBlocked as exc:
-        job.status = "failed"
-        job.error_code = str(exc)
-        job.finished_at = _now()
-        db.commit()
-        return {"job_id": job.id, "status": job.status, "error_code": job.error_code}
+        db.rollback()
+        if not _fail_owned_job(db, job_id, token, str(exc)):
+            raise ValueError("job_ownership_lost") from exc
+
+        return {
+            "job_id": job_id,
+            "status": "failed",
+            "error_code": str(exc),
+        }
+
     except Exception:
-        job.status = "failed"
-        job.error_code = "worker_error"
-        job.finished_at = _now()
-        db.commit()
+        # Clear any failed SQLAlchemy transaction before recording failure.
+        db.rollback()
+        try:
+            _fail_owned_job(db, job_id, token, "worker_error")
+        except Exception:
+            db.rollback()
         raise

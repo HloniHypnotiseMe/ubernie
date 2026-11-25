@@ -170,6 +170,8 @@ class IntelligenceJob(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    worker_token: Mapped[str | None] = mapped_column(String(36), nullable=True, unique=True, index=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
 
 
 class BusinessCandidate(Base):
