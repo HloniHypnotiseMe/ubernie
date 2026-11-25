@@ -1,99 +1,36 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Claim - Ubernie</title>
-<style>body{font-family:system-ui;max-width:600px;margin:0 auto;padding:16px} .step{display:none} .step.active{display:block} input,select,textarea{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px} button{background:#111;color:#fff;padding:12px 18px;border:0;border-radius:8px;width:100%;margin-top:10px} .bar{height:8px;background:#eee;border-radius:4px;overflow:hidden} .bar div{height:100%;background:#ffe600;width:25%} .ok{color:green} .warn{background:#fff3cd;padding:10px;border-radius:8px}</style>
-
-
-
-<style id="ubernie-mobile-fix">
-/* ===== MOBILE FIX - Ubernie ===== */
-*{max-width:100%;box-sizing:border-box}
-html,body{overflow-x:hidden}
-img,video,iframe{max-width:100%;height:auto}
-/* Nav - stack, don't overflow */
-nav,.nav,.header,.topbar{flex-wrap:wrap!important;gap:8px!important}
-nav a,.nav a{padding:10px 8px!important;font-size:14px!important;white-space:normal!important}
-/* Hero */
-.hero,.banner{padding:24px 16px!important;text-align:center}
-.hero h1,.banner h1{font-size:28px!important;line-height:1.15!important}
-.hero p{font-size:15px!important}
-/* Grids -> 1 col on phone, 2 on tablet */
-.grid,.cards,.listings,.categories{grid-template-columns:1fr!important;gap:12px!important}
-.card{padding:14px!important}
-/* Buttons - full width, thumb size */
-button,.btn,.cta,a.button{min-height:48px!important;padding:12px 16px!important;font-size:15px!important}
-/* Forms */
-input,select,textarea{width:100%!important;font-size:16px!important;padding:12px!important}
-/* Tables - scroll, don't break */
-table{display:block!important;overflow-x:auto!important;white-space:nowrap}
-.sidebar,.filter{width:100%!important;position:static!important;margin-bottom:16px}
-@media(min-width:640px){
-  .grid,.cards,.listings,.categories{grid-template-columns:repeat(2,1fr)!important}
-}
-@media(min-width:1024px){
-  .grid,.cards,.listings{grid-template-columns:repeat(3,1fr)!important}
-  .categories{grid-template-columns:repeat(4,1fr)!important}
-}
-</style>
+<style>body{font-family:system-ui;max-width:600px;margin:0 auto;padding:16px} .step{display:none} .step.active{display:block} input,select,textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:8px;font-size:16px} button{background:#111;color:#fff;padding:14px 18px;border:0;border-radius:8px;width:100%;margin-top:10px;min-height:48px;font-size:16px} .bar{height:8px;background:#eee;border-radius:4px;overflow:hidden} .bar div{height:100%;background:#ffe600;width:25%} .ok{color:green} .warn{background:#fff3cd;padding:10px;border-radius:8px}</style>
 </head><body>
 <h1 id="bizTitle">Claim Your Business - FREE</h1>
-<div class="warn">Listing stays <b>Pending / Waiting List</b> until KYC + Onboarding = 100%. No backdoors.</div>
+<div class="warn">Listing stays <b>Pending / Waiting List</b> until KYC + Onboarding = 100%.</div>
 <div class="bar"><div id="prog"></div></div><p id="progTxt">Step 1 of 4 - Claim</p>
-
-<div class="step active" id="s1">
-<h2>1. Claim</h2>
-<input id="owner" placeholder="Your full name *">
-<input id="phone" placeholder="WhatsApp / Phone *">
-<input id="email" placeholder="Email *">
-<input id="biz" placeholder="Business name *">
-<button onclick="next(2)">Continue to KYC →</button>
-</div>
-
-<div class="step" id="s2">
-<h2>2. KYC - Identity & Business</h2>
-<input id="idnum" placeholder="SA ID / Passport number *">
-<label>Upload ID + Selfie holding ID * <input type="file" id="idfile"></label>
-<label>CIPC / Proof of business * <input type="file" id="cipc"></label>
-<label>Proof of address * <input type="file" id="poa"></label>
-<input id="bank" placeholder="Bank - Account name / number (for payouts via RemotePay)">
-<button onclick="checkKYC()">Verify KYC →</button>
-<p id="kycMsg"></p>
-</div>
-
-<div class="step" id="s3">
-<h2>3. Onboarding - Your Profile</h2>
-<textarea id="desc" placeholder="What do you do? Services + prices"></textarea>
-<input id="hours" placeholder="Hours e.g. Mon-Sat 8am-5pm">
-<input id="area" placeholder="Area / Suburb">
-<label>Photos (min 3) <input type="file" multiple id="photos"></label>
-<label><input type="checkbox" id="terms"> I accept Terms + I am the owner / authorised</label>
-<button onclick="finish()">Complete Onboarding →</button>
-</div>
-
-<div class="step" id="s4">
-<h2>✅ Submitted - Waiting List</h2>
-<p>Your claim is <b>Pending Review</b>. We'll WhatsApp you when KYC passes.</p>
-<p id="summary"></p>
-<p>Position on waiting list: <b id="waitPos"># -</b></p>
-<a href="index.html"><button>Back to Directory</button></a>
-</div>
-
+<div class="step active" id="s1"><h2>1. Claim</h2>
+<input id="owner" placeholder="Your full name *"><input id="phone" placeholder="WhatsApp / Phone *" inputmode="tel"><input id="email" placeholder="Email *" inputmode="email"><input id="biz" placeholder="Business name *"><select id="category"><option value="">Category *</option><option>S'GELA - Education</option><option>SDWADLO - Fashion</option><option>MPILO - Health</option><option>Other</option></select><input id="city" placeholder="City / Area *">
+<button onclick="next(2)">Continue to KYC →</button><p id="s1Msg" style="color:red"></p></div>
+<div class="step" id="s2"><h2>2. KYC</h2><input id="idnum" placeholder="SA ID / Passport *"><label>ID + Selfie * <input type="file" id="idfile"></label><label>CIPC * <input type="file" id="cipc"></label><label>Proof of address * <input type="file" id="poa"></label><input id="bank" placeholder="Bank - Account name / number"><button onclick="checkKYC()">Verify KYC →</button><p id="kycMsg"></p></div>
+<div class="step" id="s3"><h2>3. Onboarding</h2><textarea id="desc" placeholder="What do you do? Services + prices"></textarea><input id="hours" placeholder="Hours e.g. Mon-Sat 8am-5pm"><input id="area" placeholder="Area / Suburb"><label>Photos <input type="file" multiple id="photos"></label><label><input type="checkbox" id="terms"> I accept Terms + I am owner</label><button id="submitBtn" onclick="finish()">Complete Onboarding →</button><p id="s3Msg"></p></div>
+<div class="step" id="s4"><h2>✅ Submitted - Waiting List</h2><p>Your claim is <b>Pending Review</b>.</p><p id="summary"></p><p>Position: <b id="waitPos"># -</b></p><p id="emailStatus" style="background:#e8f5e9;padding:10px;border-radius:8px"></p><a href="index.html"><button>Back to Directory</button></a><a href="business-signin.html"><button style="background:#ffe600;color:#111;margin-top:8px">Sign In With OTP →</button></a></div>
 <script>
-let params=new URLSearchParams(location.search);
-let id=params.get('id')||'';
-let listings=[]; fetch('listings.json').then(r=>r.json()).then(a=>{listings=a; let b=a.find(x=>String(x.id)===id); if(b){document.getElementById('biz').value=b.name||''; document.getElementById('bizTitle').textContent='Claim: '+(b.name||''); document.getElementById('area').value=(b.city||b.area||'');}});
-function next(n){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById('s'+n).classList.add('active'); document.getElementById('prog').style.width=(n*25)+'%'; document.getElementById('progTxt').textContent='Step '+n+' of 4'; window.scrollTo(0,0);}
-function checkKYC(){
- let missing=[]; if(!document.getElementById('idnum').value) missing.push('ID number'); if(!document.getElementById('idfile').files.length) missing.push('ID file'); if(!document.getElementById('cipc').files.length) missing.push('CIPC'); if(!document.getElementById('poa').files.length) missing.push('Proof of address');
- if(missing.length){document.getElementById('kycMsg').innerHTML='<span style="color:red">Missing: '+missing.join(', ')+' - cannot go live until 100%</span>'; return;}
- document.getElementById('kycMsg').innerHTML='<span class="ok">KYC docs received - pending verification</span>'; setTimeout(()=>next(3),800);
-}
-function finish(){
- if(!document.getElementById('terms').checked){alert('Accept Terms to continue'); return;}
- let claim={id, owner:document.getElementById('owner').value, phone:document.getElementById('phone').value, email:document.getElementById('email').value, biz:document.getElementById('biz').value, idnum:document.getElementById('idnum').value, desc:document.getElementById('desc').value, status:'PENDING', at:new Date().toISOString()};
+let params=new URLSearchParams(location.search); let id=params.get('id')||'';
+fetch('listings.json').then(r=>r.json()).then(a=>{let b=a.find(x=>String(x.id)===id); if(b){document.getElementById('biz').value=b.name||''; document.getElementById('bizTitle').textContent='Claim: '+(b.name||''); document.getElementById('area').value=(b.city||b.area||''); document.getElementById('city').value=(b.city||b.area||'');}});
+function next(n){ if(n===2){ if(!document.getElementById('owner').value.trim()||!document.getElementById('phone').value.trim()||!document.getElementById('email').value.trim()||!document.getElementById('biz').value.trim()){document.getElementById('s1Msg').textContent='Fill all * fields';return;} } document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById('s'+n).classList.add('active'); document.getElementById('prog').style.width=(n*25)+'%'; document.getElementById('progTxt').textContent='Step '+n+' of 4'; window.scrollTo(0,0); }
+function checkKYC(){ let m=[]; if(!document.getElementById('idnum').value) m.push('ID'); if(!document.getElementById('idfile').files.length) m.push('ID file'); if(!document.getElementById('cipc').files.length) m.push('CIPC'); if(!document.getElementById('poa').files.length) m.push('POA'); if(m.length){document.getElementById('kycMsg').innerHTML='<span style="color:red">Missing: '+m.join(', ')+'</span>';return;} document.getElementById('kycMsg').innerHTML='<span class="ok">KYC received - pending verification</span>'; setTimeout(()=>next(3),800); }
+async function finish(){
+ if(!document.getElementById('terms').checked){alert('Accept Terms');return;}
+ let btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Sending claim...';
+ let claim={id, owner:document.getElementById('owner').value.trim(), phone:document.getElementById('phone').value.trim(), email:document.getElementById('email').value.trim(), biz:document.getElementById('biz').value.trim(), business:document.getElementById('biz').value.trim(), category:document.getElementById('category').value, city:document.getElementById('city').value.trim(), area:document.getElementById('area').value.trim(), idnum:document.getElementById('idnum').value.trim(), bank:document.getElementById('bank').value.trim(), desc:document.getElementById('desc').value.trim(), hours:document.getElementById('hours').value.trim(), status:'PENDING', at:new Date().toISOString()};
  let all=JSON.parse(localStorage.getItem('ubernie_claims')||'[]'); all.push(claim); localStorage.setItem('ubernie_claims', JSON.stringify(all));
+ // DUAL SEND TO claims@ubernie.co.za
+ let sent=false; let subject="NEW CLAIM: "+claim.biz+" - "+claim.phone;
+ try{ let r=await fetch("https://formsubmit.co/ajax/claims@ubernie.co.za",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({_subject:subject,_template:"table",_captcha:"false",_replyto:claim.email,Business:claim.biz,Owner:claim.owner,Phone:claim.phone,Email:claim.email,Category:claim.category,City:claim.city,Area:claim.area,Description:claim.desc,Hours:claim.hours,Status:"PENDING",Submitted:claim.at})}); sent=r.ok; console.log("FormSubmit",r.status); }catch(e){ console.log(e); }
+ if(!sent){
+   // Fallback: open user's email app pre-filled to claims@ - ALWAYS works
+   let body="Business: "+claim.biz+"\nOwner: "+claim.owner+"\nPhone: "+claim.phone+"\nEmail: "+claim.email+"\nCategory: "+claim.category+"\nCity: "+claim.city+"\nDesc: "+claim.desc;
+   window.open("mailto:claims@ubernie.co.za?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body),"_blank");
+ }
  document.getElementById('summary').textContent=claim.biz+' - '+claim.owner+' - '+claim.phone;
  document.getElementById('waitPos').textContent='# '+(all.length+12);
- next(4);
- // TODO: send to WhatsApp / RemotePay webhook - for now stored locally
- console.log('CLAIM', claim);
+ document.getElementById('emailStatus').textContent=sent?"✅ Email sent to claims@ubernie.co.za":"⚠️ FormSubmit blocked by BillionMail - your email app opened pre-filled to claims@ - just press SEND. Also saved locally.";
+ next(4); btn.disabled=false; btn.textContent='Complete Onboarding →';
 }
 </script></body></html>
