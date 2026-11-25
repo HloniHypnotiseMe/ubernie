@@ -59,3 +59,7 @@ index.html.BACKUP-BEFORE-RH
 listings.json.BACKUP-BEFORE-AUDITV2
 patch_rh_safe.py
 fix_audit_v2_safe.py
+node_modules/
+backend/node_modules/
+backend/*.db
+backend/uploads/
