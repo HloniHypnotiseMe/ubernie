@@ -33,7 +33,40 @@ nav{display:flex;gap:18px;font-size:14px;opacity:.9}nav a:hover{color:#7ED321}
 .cta{padding:28px 5%;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
 footer{padding:18px 5%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;opacity:.7;font-size:13px;border-top:1px solid #222}
 @media(max-width:700px){.hero{grid-template-columns:1fr}nav{display:none}.hero h1{font-size:30px}}
-.upsell{border:1px solid #eee;border-radius:10px;padding:10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}.upsell label{font-size:14px}.price{font-weight:800}.modal-content input{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:10px}.btn{display:block;text-align:center;text-decoration:none;padding:11px;border-radius:10px;font-weight:700;margin-top:8px;cursor:pointer;border:none;width:100%;font-size:15px}.btn-green{background:#25D366;color:#fff}.btn-dark{background:#111;color:#fff}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;overflow:auto}.modal-content{background:#fff;max-width:520px;margin:30px auto;padding:24px;border-radius:16px;color:#111}</style></head><body>
+.upsell{border:1px solid #eee;border-radius:10px;padding:10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}.upsell label{font-size:14px}.price{font-weight:800}.modal-content input{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:10px}.btn{display:block;text-align:center;text-decoration:none;padding:11px;border-radius:10px;font-weight:700;margin-top:8px;cursor:pointer;border:none;width:100%;font-size:15px}.btn-green{background:#25D366;color:#fff}.btn-dark{background:#111;color:#fff}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;overflow:auto}.modal-content{background:#fff;max-width:520px;margin:30px auto;padding:24px;border-radius:16px;color:#111}</style>
+
+
+<style id="ubernie-mobile-fix">
+/* ===== MOBILE FIX - Ubernie ===== */
+*{max-width:100%;box-sizing:border-box}
+html,body{overflow-x:hidden}
+img,video,iframe{max-width:100%;height:auto}
+/* Nav - stack, don't overflow */
+nav,.nav,.header,.topbar{flex-wrap:wrap!important;gap:8px!important}
+nav a,.nav a{padding:10px 8px!important;font-size:14px!important;white-space:normal!important}
+/* Hero */
+.hero,.banner{padding:24px 16px!important;text-align:center}
+.hero h1,.banner h1{font-size:28px!important;line-height:1.15!important}
+.hero p{font-size:15px!important}
+/* Grids -> 1 col on phone, 2 on tablet */
+.grid,.cards,.listings,.categories{grid-template-columns:1fr!important;gap:12px!important}
+.card{padding:14px!important}
+/* Buttons - full width, thumb size */
+button,.btn,.cta,a.button{min-height:48px!important;padding:12px 16px!important;font-size:15px!important}
+/* Forms */
+input,select,textarea{width:100%!important;font-size:16px!important;padding:12px!important}
+/* Tables - scroll, don't break */
+table{display:block!important;overflow-x:auto!important;white-space:nowrap}
+.sidebar,.filter{width:100%!important;position:static!important;margin-bottom:16px}
+@media(min-width:640px){
+  .grid,.cards,.listings,.categories{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(min-width:1024px){
+  .grid,.cards,.listings{grid-template-columns:repeat(3,1fr)!important}
+  .categories{grid-template-columns:repeat(4,1fr)!important}
+}
+</style>
+</head><body>
 <header><a href="deals.html" style="color:#FFD600;font-weight:800">Deals Corner</a><div class="logo">UBERNIE <em>CAR-LA-HURRY</em>
 <section class="hero"><div><h1>CAR-LA-HURRY - South Africa's Trusted <em>Car Rental</em> Marketplace</h1><p>Compare verified car rental near you. Prices, reviews, pick-up locations. 60 rental businesses across South Africa.</p>
 <div class="search"><select id="cat"><option value="">All Services</option><option>mechanic</option><option>dealership</option><option>spare parts</option><option>tyres</option><option>car wash</option><option>car rental</option></select><select id="prov"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select><input id="q" placeholder="Search name or area..."><button class="btn" onclick="render()">Search</button></div>

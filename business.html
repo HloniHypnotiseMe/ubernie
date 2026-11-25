@@ -2,6 +2,39 @@
 <title>Business - Ubernie</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>body{font-family:system-ui;padding:16px;max-width:900px;margin:auto} #map{height:300px;border-radius:12px;margin:16px 0} .badge{background:#16a34a;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px} .free{background:#999} .btn{display:inline-block;background:#111;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;margin:6px 6px 0 0} input,textarea{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px}</style>
+
+
+
+<style id="ubernie-mobile-fix">
+/* ===== MOBILE FIX - Ubernie ===== */
+*{max-width:100%;box-sizing:border-box}
+html,body{overflow-x:hidden}
+img,video,iframe{max-width:100%;height:auto}
+/* Nav - stack, don't overflow */
+nav,.nav,.header,.topbar{flex-wrap:wrap!important;gap:8px!important}
+nav a,.nav a{padding:10px 8px!important;font-size:14px!important;white-space:normal!important}
+/* Hero */
+.hero,.banner{padding:24px 16px!important;text-align:center}
+.hero h1,.banner h1{font-size:28px!important;line-height:1.15!important}
+.hero p{font-size:15px!important}
+/* Grids -> 1 col on phone, 2 on tablet */
+.grid,.cards,.listings,.categories{grid-template-columns:1fr!important;gap:12px!important}
+.card{padding:14px!important}
+/* Buttons - full width, thumb size */
+button,.btn,.cta,a.button{min-height:48px!important;padding:12px 16px!important;font-size:15px!important}
+/* Forms */
+input,select,textarea{width:100%!important;font-size:16px!important;padding:12px!important}
+/* Tables - scroll, don't break */
+table{display:block!important;overflow-x:auto!important;white-space:nowrap}
+.sidebar,.filter{width:100%!important;position:static!important;margin-bottom:16px}
+@media(min-width:640px){
+  .grid,.cards,.listings,.categories{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(min-width:1024px){
+  .grid,.cards,.listings{grid-template-columns:repeat(3,1fr)!important}
+  .categories{grid-template-columns:repeat(4,1fr)!important}
+}
+</style>
 </head><body>
 <a href="index.html">← Back to Ubernie</a>
 <h1 id="name">Loading...</h1>
