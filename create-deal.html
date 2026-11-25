@@ -1,0 +1,60 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Create Deal / Voucher - Ubernie</title>
+<style>body{font-family:system-ui;max-width:600px;margin:0 auto;padding:16px;background:#f8f8f8} .card{background:#fff;border:1px solid #eee;border-radius:14px;padding:16px;margin:12px 0} input,select,textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:8px;font-size:16px} button{background:#111;color:#fff;padding:14px;width:100%;border:0;border-radius:10px;font-size:16px;min-height:48px;margin-top:8px} .tpl{border:2px solid #eee;border-radius:12px;padding:12px;margin:6px 0;cursor:pointer} .tpl.sel{border-color:#111;background:#fffde7} .tabs{display:flex;gap:8px} .tabs button{flex:1;background:#eee;color:#111} .tabs button.sel{background:#111;color:#fff} .preview{border:2px dashed #111;border-radius:14px;padding:16px;background:#fff} .badge{background:#e6f7d4;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700} .price{font-size:28px;font-weight:800} .old{text-decoration:line-through;color:#888} small{color:#666}</style></head><body>
+<h1>Create Deal / Voucher</h1><p>Tap a template - don't type from scratch. 2 minutes, done.</p>
+<div class="tabs"><button id="tabDeal" class="sel" onclick="setType('deal')">🎁 Deal</button><button id="tabVoucher" onclick="setType('voucher')">🎟️ Voucher</button></div>
+
+<div class="card"><h3>1. Pick a template</h3><div id="tpls"></div></div>
+
+<div class="card"><h3>2. Your details</h3>
+<input id="biz" placeholder="Business name *">
+<input id="phone" placeholder="WhatsApp / Phone *">
+<input id="email" placeholder="Email *">
+<input id="title" placeholder="Deal title *">
+<textarea id="desc" placeholder="What does customer get?"></textarea>
+<div style="display:flex;gap:8px"><input id="price" placeholder="Price R e.g. 80" inputmode="numeric"><input id="oldPrice" placeholder="Was R e.g. 100"></div>
+<div style="display:flex;gap:8px"><input id="qty" type="number" placeholder="How many? e.g. 20" value="20"><input id="valid" type="date"></div>
+<input id="code" placeholder="Voucher code - auto if empty">
+<label><input type="checkbox" id="terms" checked> I agree - customer can claim, I will honour it</label>
+<p id="msg" style="color:red"></p>
+</div>
+
+<div class="card"><h3>3. Live Preview - This is what customers see</h3>
+<div class="preview"><span class="badge" id="pvBadge">DEAL - PENDING APPROVAL</span><h2 id="pvTitle" style="margin:8px 0">Your Deal Title</h2><p id="pvBiz" style="color:#666;margin:0">Your Business</p><p id="pvDesc" style="margin:8px 0">Description...</p><div><span class="price" id="pvPrice">R80</span> <span class="old" id="pvOld">R100</span> <span id="pvSave" style="background:#ffe600;padding:3px 8px;border-radius:20px;font-weight:700">Save R20</span></div><p><small id="pvMeta">20 left • Valid until - • Code: -</small></p><button style="background:#ffe600;color:#111" onclick="alert('Preview only - Publish below to go live')">Claim This Deal →</button></div>
+</div>
+
+<button id="pubBtn" onclick="publish()">Publish Deal → Send for Approval</button>
+<p><a href="business-signin.html">← Back to Dashboard</a> • <a href="deals.html">View Deals</a></p>
+
+<script>
+let TYPE='deal';
+let TPLS={
+deal:[{t:'20% Off First Visit',d:'New customers get 20% off their first visit. No catch.',p:'80',o:'100'},{t:'Buy 1 Get 1 Free',d:'Buy any 1, get 2nd FREE. Valid Mon-Thu.',p:'100',o:'200'},{t:'R100 Off Over R500',d:'Spend R500+, get R100 off. One per customer.',p:'400',o:'500'},{t:'FREE Audit / Consultation',d:'Free 15-min audit / consultation. Book on WhatsApp.',p:'0',o:'299'}],
+voucher:[{t:'R50 Voucher',d:'R50 off your next visit. 1 per customer, 30 days.',p:'50',o:'50'},{t:'R100 Voucher',d:'R100 off when you spend R300+. 1 per customer.',p:'100',o:'100'},{t:'Free Trial / First Session Free',d:'First session / trial FREE. Book on WhatsApp.',p:'0',o:'150'}]
+};
+function setType(t){TYPE=t;document.getElementById('tabDeal').className=t==='deal'?'sel':'';document.getElementById('tabVoucher').className=t==='voucher'?'sel':'';renderTpls();update();}
+function renderTpls(){document.getElementById('tpls').innerHTML=TPLS[TYPE].map((x,i)=>'<div class="tpl" onclick="pick('+i+',this)"><b>'+x.t+'</b><div><small>'+x.d+'</small></div></div>').join('');}
+function pick(i,el){document.querySelectorAll('.tpl').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');let x=TPLS[TYPE][i];document.getElementById('title').value=x.t;document.getElementById('desc').value=x.d;document.getElementById('price').value=x.p;document.getElementById('oldPrice').value=x.o;update();}
+function update(){
+ let t=document.getElementById('title').value||'Your Deal Title';let b=document.getElementById('biz').value||'Your Business';let d=document.getElementById('desc').value||'Description...';let p=parseFloat(document.getElementById('price').value||0);let o=parseFloat(document.getElementById('oldPrice').value||0);let q=document.getElementById('qty').value||'20';let v=document.getElementById('valid').value||'-';let c=document.getElementById('code').value||'-';
+ document.getElementById('pvTitle').textContent=t;document.getElementById('pvBiz').textContent=b;document.getElementById('pvDesc').textContent=d;document.getElementById('pvPrice').textContent=p===0?'FREE':'R'+p;document.getElementById('pvOld').textContent=o?'R'+o:'';document.getElementById('pvSave').textContent=(o>p)?'Save R'+(o-p):(TYPE==='voucher'?'VOUCHER':'DEAL');document.getElementById('pvMeta').textContent=q+' left • Valid until '+v+' • Code: '+c;document.getElementById('pvBadge').textContent=(TYPE==='voucher'?'VOUCHER':'DEAL')+' - PENDING APPROVAL';
+}
+['biz','phone','email','title','desc','price','oldPrice','qty','valid','code'].forEach(id=>document.getElementById(id).addEventListener('input',update));
+let saved=JSON.parse(localStorage.getItem('ubernie_claims')||'[]'); if(saved.length){let l=saved[saved.length-1];document.getElementById('biz').value=l.biz||l.business||'';document.getElementById('phone').value=l.phone||'';document.getElementById('email').value=l.email||'';}
+let d=new Date(); d.setDate(d.getDate()+30); document.getElementById('valid').value=d.toISOString().slice(0,10);
+renderTpls(); update(); pick(0, document.querySelector('.tpl'));
+async function publish(){
+ if(!document.getElementById('biz').value.trim()||!document.getElementById('phone').value.trim()||!document.getElementById('title').value.trim()){document.getElementById('msg').textContent='Fill Business, Phone, Title';return;}
+ if(!document.getElementById('terms').checked){document.getElementById('msg').textContent='Tick agree';return;}
+ let btn=document.getElementById('pubBtn'); btn.disabled=true; btn.textContent='Publishing...';
+ let code=document.getElementById('code').value.trim()||('UBERNIE-'+(document.getElementById('biz').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)||'X')+'-'+Math.floor(100+Math.random()*900));
+ document.getElementById('code').value=code;
+ let item={type:TYPE,title:document.getElementById('title').value.trim(),biz:document.getElementById('biz').value.trim(),phone:document.getElementById('phone').value.trim(),email:document.getElementById('email').value.trim(),desc:document.getElementById('desc').value.trim(),price:document.getElementById('price').value,oldPrice:document.getElementById('oldPrice').value,qty:document.getElementById('qty').value,valid:document.getElementById('valid').value,code,status:'PENDING',at:new Date().toISOString()};
+ let all=JSON.parse(localStorage.getItem('ubernie_deals')||'[]'); all.push(item); localStorage.setItem('ubernie_deals',JSON.stringify(all));
+ let subject="NEW "+(TYPE==='voucher'?'VOUCHER':'DEAL')+": "+item.title+" - "+item.biz;
+ let sent=false;
+ try{let r=await fetch("https://formsubmit.co/ajax/claims@ubernie.co.za",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({_subject:subject,_template:"table",_captcha:"false",_replyto:item.email,Type:TYPE,Title:item.title,Business:item.biz,Phone:item.phone,Email:item.email,Description:item.desc,Price:item.price,Was:item.oldPrice,Quantity:item.qty,ValidUntil:item.valid,Code:item.code,Status:"PENDING",Submitted:item.at})}); sent=r.ok;}catch(e){}
+ if(!sent){ let body="Type: "+TYPE+"\nTitle: "+item.title+"\nBusiness: "+item.biz+"\nPhone: "+item.phone+"\nEmail: "+item.email+"\nDesc: "+item.desc+"\nPrice: "+item.price+" Was: "+item.oldPrice+"\nQty: "+item.qty+" Valid: "+item.valid+" Code: "+item.code; window.open("mailto:claims@ubernie.co.za?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body),"_blank"); }
+ alert((sent?"✅ Sent to claims@ubernie.co.za":"⚠️ FormSubmit blocked - email app opened, press SEND")+"\n\nYour "+TYPE+" is PENDING approval. We will WhatsApp you when live.");
+ location.href="business-signin.html?deal=pending";
+}
+</script></body></html>
