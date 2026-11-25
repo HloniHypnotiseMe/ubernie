@@ -204,9 +204,38 @@ function payNowClaim(){
   document.getElementById('payLinks').style.display='block';
   alert('✅ Claim sent to Whatomate! Now tap a Pay link below to pay by card.');
 }
-</script></body></html>
+</script>
+<section style="max-width:1100px;margin:0 auto;padding:20px">
+<h2 style="text-align:center">How Ubernie Works</h2>
+<div class="trust-grid">
+<div class="trust-card"><h3>1. Search</h3><p>Search plumber in Soweto, car wash in Johannesburg, or any of 30+ services.</p></div>
+<div class="trust-card"><h3>2. Compare</h3><p>Compare prices, hours, area and reviews. Verified = we called and confirmed the business.</p></div>
+<div class="trust-card"><h3>3. WhatsApp Direct</h3><p>Tap the green WhatsApp button to message the business directly. No middleman.</p></div>
+</div>
+<p style="text-align:center"><b>Verified on Ubernie means:</b> Real phone number, real area, real business. &nbsp;|&nbsp; <a class="wa-btn" href="https://wa.me/277XXXXXXXXX?text=Hi%20Ubernie%2C%20I%20want%20to%20list%20my%20business">WhatsApp Ubernie → List Your Business FREE</a></p>
+<p style="text-align:center;font-size:13px;color:#666">Claiming is FREE. <a href="claim.html">Claim Your Business →</a> | <a href="faq.html">FAQ</a></p>
+</section>
+</body></html>
 <script>/* UBERNIE_CLAIM_FIX */
 function openClaim(idx){ try{ var x=(typeof ALL!=='undefined'&&ALL[idx])?ALL[idx]:null; if(x&&x.id){ location.href='claim.html?id='+encodeURIComponent(x.id); return; } }catch(e){} location.href='claim.html'; }
 // Backup: if any Claim link is tapped, force it to claim.html even if ALL failed
 document.addEventListener('click', function(e){ var a=e.target.closest&&e.target.closest('a.claim'); if(a){ e.preventDefault(); var href=a.getAttribute('href')||''; if(href && href.indexOf('claim.html')>-1){ location.href=href; return; } try{ var card=a.closest('.card'); var h=card?card.querySelector('h3'):null; if(h){ location.href='claim.html?biz='+encodeURIComponent(h.textContent.trim()); return; } }catch(err){} location.href='claim.html'; } });
+</script>
+<style>
+/* WHATSAPP + TRUST + MOBILE NAV */
+.wa-btn{display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff!important;padding:10px 16px;border-radius:999px;font-weight:800;text-decoration:none;font-size:14px}
+.wa-btn:hover{background:#1fb857}
+.trust-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:24px 0}
+.trust-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:16px}
+@media(max-width:700px){.trust-grid{grid-template-columns:1fr} #mainNav{display:none} #mainNav.open{display:flex;flex-direction:column;position:absolute;top:60px;left:0;right:0;background:#111;padding:16px;z-index:99} #hamburger{display:block!important}}
+</style>
+<script>
+// WhatsApp lead button - use on any listing: whatsappLink(phone, businessName)
+function whatsappLink(phone, name){
+  var clean = String(phone||'').replace(/\D/g,'');
+  if(clean.startsWith('0')) clean = '27' + clean.slice(1);
+  var msg = encodeURIComponent('Hi ' + (name||'') + ', I found you on Ubernie.co.za and want to ask about your services.');
+  return 'https://wa.me/' + clean + '?text=' + msg;
+}
+function toggleMainNav(){ document.getElementById('mainNav').classList.toggle('open'); }
 </script>
