@@ -19,7 +19,9 @@
 </div>
 <div class="box" id="dash" style="display:none">
 <h3 id="bizName">Your Business</h3><p>Status: <b id="status">-</b></p><p id="nextStep"></p>
-<a href="index.html"><button>Back to Directory</button></a>
+<p style="background:#fffde7;padding:12px;border-radius:10px"><b>Next step to go LIVE:</b><br>1. KYC Approved (we do this)<br>2. Create your FIRST Deal / Voucher ↓<br>3. Share your listing on WhatsApp</p>
+<a href="create-deal.html"><button style="background:#ffe600;color:#111;margin-top:8px">+ Create Deal / Voucher →</button></a>
+<a href="index.html"><button style="margin-top:8px">Back to Directory</button></a>
 </div>
 <script>
 let currentOTP="";
@@ -32,8 +34,6 @@ async function signin(){
   await new Promise(r=>setTimeout(r,600));
   let claims=getClaims();
   let found=claims.find(c=>normPhone(c.phone||"")===normPhone(phone)||(email&&(c.email||"").toLowerCase()===email.toLowerCase()));
-  // FIX: Always send OTP, even if claim is on another device - don't block login
-  // If no local claim, we still let them in and show PENDING, and email claims@
   currentOTP=String(Math.floor(100000+Math.random()*900000));
   document.getElementById('loginBox').style.display='none';
   document.getElementById('otpBox').style.display='block';
