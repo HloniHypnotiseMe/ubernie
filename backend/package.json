@@ -1,0 +1,1 @@
+{"name":"ubernie-backend","version":"1.0.0","type":"module","scripts":{"start":"node server.js"},"dependencies":{"express":"^4.19.2","multer":"^1.4.5-lts.1","sqlite3":"^5.1.7","cors":"^2.8.5"}}

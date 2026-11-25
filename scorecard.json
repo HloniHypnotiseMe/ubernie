@@ -1,7 +1,7 @@
 [
   {
     "page": "accommodation.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -9,13 +9,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "airbnb.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -23,13 +23,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "automotive.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -37,7 +37,7 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
@@ -57,7 +57,7 @@
   },
   {
     "page": "cafe.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -65,13 +65,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "car-rental.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -79,13 +79,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "car-repair.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -93,13 +93,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "car-wash.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -107,7 +107,7 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
@@ -127,7 +127,7 @@
   },
   {
     "page": "day-care.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -135,13 +135,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "dealership.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -149,7 +149,7 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
@@ -183,7 +183,7 @@
   },
   {
     "page": "education.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -191,13 +191,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "electronics.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -205,13 +205,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "fashion.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -219,13 +219,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "fitness.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -233,13 +233,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "food.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -247,7 +247,7 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
@@ -267,7 +267,7 @@
   },
   {
     "page": "grocery.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -275,13 +275,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "hairdresser.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -289,13 +289,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "health.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -303,13 +303,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "hotel.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -317,13 +317,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "index.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -331,7 +331,7 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
@@ -351,7 +351,7 @@
   },
   {
     "page": "mechanic.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -359,13 +359,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "pets.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -373,13 +373,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "pharmacy.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -387,13 +387,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "property.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -401,7 +401,7 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
@@ -421,7 +421,7 @@
   },
   {
     "page": "services.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -429,13 +429,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "spare-parts.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -443,13 +443,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "supermarket.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -457,13 +457,13 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   },
   {
     "page": "tyres.html",
-    "score": "10/10",
+    "score": "9/10",
     "1_Title_Brand": 1,
     "2_H1_Brand": 1,
     "3_No_Banned": 1,
@@ -471,7 +471,7 @@
     "5_No_Fake_Phone": 1,
     "6_Deals_Link": 1,
     "7_Nav_No_Dead": 1,
-    "8_CTA_Real": 1,
+    "8_CTA_Real": 0,
     "9_Footer": 1,
     "10_Nothing_After_Footer": 1
   }

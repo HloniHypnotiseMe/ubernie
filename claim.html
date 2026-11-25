@@ -1,0 +1,66 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Claim - Ubernie</title>
+<style>body{font-family:system-ui;max-width:600px;margin:0 auto;padding:16px} .step{display:none} .step.active{display:block} input,select,textarea{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px} button{background:#111;color:#fff;padding:12px 18px;border:0;border-radius:8px;width:100%;margin-top:10px} .bar{height:8px;background:#eee;border-radius:4px;overflow:hidden} .bar div{height:100%;background:#ffe600;width:25%} .ok{color:green} .warn{background:#fff3cd;padding:10px;border-radius:8px}</style>
+</head><body>
+<h1 id="bizTitle">Claim Your Business - FREE</h1>
+<div class="warn">Listing stays <b>Pending / Waiting List</b> until KYC + Onboarding = 100%. No backdoors.</div>
+<div class="bar"><div id="prog"></div></div><p id="progTxt">Step 1 of 4 - Claim</p>
+
+<div class="step active" id="s1">
+<h2>1. Claim</h2>
+<input id="owner" placeholder="Your full name *">
+<input id="phone" placeholder="WhatsApp / Phone *">
+<input id="email" placeholder="Email *">
+<input id="biz" placeholder="Business name *">
+<button onclick="next(2)">Continue to KYC →</button>
+</div>
+
+<div class="step" id="s2">
+<h2>2. KYC - Identity & Business</h2>
+<input id="idnum" placeholder="SA ID / Passport number *">
+<label>Upload ID + Selfie holding ID * <input type="file" id="idfile"></label>
+<label>CIPC / Proof of business * <input type="file" id="cipc"></label>
+<label>Proof of address * <input type="file" id="poa"></label>
+<input id="bank" placeholder="Bank - Account name / number (for payouts via RemotePay)">
+<button onclick="checkKYC()">Verify KYC →</button>
+<p id="kycMsg"></p>
+</div>
+
+<div class="step" id="s3">
+<h2>3. Onboarding - Your Profile</h2>
+<textarea id="desc" placeholder="What do you do? Services + prices"></textarea>
+<input id="hours" placeholder="Hours e.g. Mon-Sat 8am-5pm">
+<input id="area" placeholder="Area / Suburb">
+<label>Photos (min 3) <input type="file" multiple id="photos"></label>
+<label><input type="checkbox" id="terms"> I accept Terms + I am the owner / authorised</label>
+<button onclick="finish()">Complete Onboarding →</button>
+</div>
+
+<div class="step" id="s4">
+<h2>✅ Submitted - Waiting List</h2>
+<p>Your claim is <b>Pending Review</b>. We'll WhatsApp you when KYC passes.</p>
+<p id="summary"></p>
+<p>Position on waiting list: <b id="waitPos"># -</b></p>
+<a href="index.html"><button>Back to Directory</button></a>
+</div>
+
+<script>
+let params=new URLSearchParams(location.search);
+let id=params.get('id')||'';
+let listings=[]; fetch('listings.json').then(r=>r.json()).then(a=>{listings=a; let b=a.find(x=>String(x.id)===id); if(b){document.getElementById('biz').value=b.name||''; document.getElementById('bizTitle').textContent='Claim: '+(b.name||''); document.getElementById('area').value=(b.city||b.area||'');}});
+function next(n){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById('s'+n).classList.add('active'); document.getElementById('prog').style.width=(n*25)+'%'; document.getElementById('progTxt').textContent='Step '+n+' of 4'; window.scrollTo(0,0);}
+function checkKYC(){
+ let missing=[]; if(!document.getElementById('idnum').value) missing.push('ID number'); if(!document.getElementById('idfile').files.length) missing.push('ID file'); if(!document.getElementById('cipc').files.length) missing.push('CIPC'); if(!document.getElementById('poa').files.length) missing.push('Proof of address');
+ if(missing.length){document.getElementById('kycMsg').innerHTML='<span style="color:red">Missing: '+missing.join(', ')+' - cannot go live until 100%</span>'; return;}
+ document.getElementById('kycMsg').innerHTML='<span class="ok">KYC docs received - pending verification</span>'; setTimeout(()=>next(3),800);
+}
+function finish(){
+ if(!document.getElementById('terms').checked){alert('Accept Terms to continue'); return;}
+ let claim={id, owner:document.getElementById('owner').value, phone:document.getElementById('phone').value, email:document.getElementById('email').value, biz:document.getElementById('biz').value, idnum:document.getElementById('idnum').value, desc:document.getElementById('desc').value, status:'PENDING', at:new Date().toISOString()};
+ let all=JSON.parse(localStorage.getItem('ubernie_claims')||'[]'); all.push(claim); localStorage.setItem('ubernie_claims', JSON.stringify(all));
+ document.getElementById('summary').textContent=claim.biz+' - '+claim.owner+' - '+claim.phone;
+ document.getElementById('waitPos').textContent='# '+(all.length+12);
+ next(4);
+ // TODO: send to WhatsApp / RemotePay webhook - for now stored locally
+ console.log('CLAIM', claim);
+}
+</script></body></html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Business Sign In - Ubernie</title>
+<style>body{font-family:system-ui;max-width:420px;margin:0 auto;padding:20px} input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:8px} button{background:#111;color:#fff;padding:12px;width:100%;border:0;border-radius:8px} .box{border:1px solid #eee;padding:16px;border-radius:12px;margin-top:16px}</style></head><body>
+<h1>Business Sign In</h1>
+<p>Sign in to manage your listing, KYC status, deals & payouts.</p>
+<div class="box">
+<input id="phone" placeholder="WhatsApp / Phone e.g. +27 82...">
+<input id="email" placeholder="Email used to claim">
+<button onclick="signin()">Send OTP / Sign In →</button>
+<p id="msg" style="color:#666"></p>
+<p><small>New here? <a href="claim.html">Claim Your Business - FREE</a> first. Claim → KYC → Approve → then you can sign in.</small></p>
+</div>
+<div class="box" id="dash" style="display:none">
+<h3 id="bizName">Your Business</h3>
+<p>Status: <b id="status">-</b></p>
+<p id="nextStep"></p>
+<a href="index.html"><button>Back to Directory</button></a>
+</div>
+<script>
+async function signin(){
+  let phone=document.getElementById('phone').value.trim();
+  let email=document.getElementById('email').value.trim();
+  if(!phone){document.getElementById('msg').textContent='Enter phone'; return;}
+  document.getElementById('msg').textContent='Checking claim...';
+  // TODO: backend will check claims table by phone/email
+  // For now: check local backend if running, else show pending flow
+  try{
+    let r=await fetch('http://localhost:3000/api/claims',{headers:{'x-admin-key':'public-check'}});
+    // backend returns 401 for public - so we fallback to claim flow
+    throw new Error('use claim flow');
+  }catch(e){
+    document.getElementById('dash').style.display='block';
+    document.getElementById('status').textContent='PENDING - Check your claim';
+    document.getElementById('nextStep').textContent='If you already claimed, we will WhatsApp your OTP once KYC is approved. If not claimed yet, claim now.';
+    document.getElementById('msg').textContent='No verified login yet - complete Claim + KYC first.';
+  }
+}
+</script></body></html>

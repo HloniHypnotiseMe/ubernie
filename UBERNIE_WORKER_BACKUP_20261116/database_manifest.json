@@ -1,0 +1,33 @@
+{
+  "created_at_utc": "2026-11-17T09:56:43.382097+00:00",
+  "source_database": "data\\web-department.db",
+  "backup_file": "..\\UBERNIE_WORKER_BACKUP_20261116\\web-department-db.pre_lease_migration.bak",
+  "sha256": "17bf84fffc0309918b21201753aee9840cb784fb08bcc03a9e1a0c70ee3d66a5",
+  "integrity": "ok",
+  "tables": [
+    "business_candidate_evidence",
+    "business_candidates",
+    "intelligence_jobs",
+    "intelligence_sources",
+    "orders",
+    "payments",
+    "rider_events",
+    "tax_records",
+    "users",
+    "waitlist_entries",
+    "zones"
+  ],
+  "row_counts": {
+    "business_candidate_evidence": 0,
+    "business_candidates": 0,
+    "intelligence_jobs": 0,
+    "intelligence_sources": 0,
+    "orders": 1,
+    "payments": 1,
+    "rider_events": 1,
+    "tax_records": 1,
+    "users": 3,
+    "waitlist_entries": 21,
+    "zones": 1
+  }
+}

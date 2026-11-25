@@ -102,86 +102,109 @@ def queue_job(db: Session, *, source_id: str, requested_url: str,
     return job
 
 
-def ingest_candidate(db: Session, *, source_id: str, source_url: str,
-                     business_name: str, created_fields: dict[str, str | None]) -> tuple[BusinessCandidate, bool]:
+def ingest_candidate(
+    db: Session,
+    *,
+    source_id: str,
+    source_url: str,
+    business_name: str,
+    created_fields: dict[str, str | None],
+) -> tuple[BusinessCandidate, bool]:
     source = db.get(IntelligenceSource, source_id)
     if source is None or not source.enabled:
         raise ValueError("Source is missing or disabled")
     if _host(source_url) != urlparse(source.base_url).hostname:
-        raise ValueError("Evidence URL must belong to the registered source host")
+        raise ValueError(
+            "Evidence URL must belong to the registered source host"
+        )
 
     name = business_name.strip()
     if not name:
         raise ValueError("business_name is required")
-    key = _dedupe_key(name, created_fields.get("city"), created_fields.get("province"), created_fields.get("website"))
-    existing = db.scalar(select(BusinessCandidate).where(BusinessCandidate.dedupe_key == key))
+
+    key = _dedupe_key(
+        name,
+        created_fields.get("city"),
+        created_fields.get("province"),
+        created_fields.get("website"),
+    )
+
+    existing = db.scalar(
+        select(BusinessCandidate).where(
+            BusinessCandidate.dedupe_key == key
+        )
+    )
     if existing is not None:
         return existing, True
 
-    allowed = {"category", "city", "province", "address", "phone", "email", "website"}
-    fields = {k: (v.strip() if isinstance(v, str) else v) for k, v in created_fields.items() if k in allowed}
+    allowed = {
+        "category", "city", "province", "address",
+        "phone", "email", "website",
+    }
+    fields = {
+        k: (v.strip() if isinstance(v, str) else v)
+        for k, v in created_fields.items()
+        if k in allowed
+    }
+
     candidate = BusinessCandidate(
-        id=str(uuid.uuid4()), dedupe_key=key, business_name=name,
-        source_url=source_url, source_id=source.id, evidence=[],
-        status="pending_review", discovered_at=_now(),
+        id=str(uuid.uuid4()),
+        dedupe_key=key,
+        business_name=name,
+        source_url=source_url,
+        source_id=source.id,
+        evidence=[],
+        status="pending_review",
+        discovered_at=_now(),
         **fields,
     )
-    db.add(candidate)
-    db.flush()
 
-    evidence_rows = []
-    for field_name, value in {"business_name": name, **fields}.items():
-        if value:
-            evidence_rows.append(BusinessCandidateEvidence(
-                id=str(uuid.uuid4()), candidate_id=candidate.id,
-                field_name=field_name, observed_value=str(value),
-                source_url=source_url, observed_at=_now(),
-                evidence_kind="public_business_source",
-            ))
-    db.add_all(evidence_rows)
-    candidate.evidence = [
-        {"field": row.field_name, "value": row.observed_value,
-         "source_url": row.source_url, "observed_at": row.observed_at.isoformat()}
-        for row in evidence_rows
-    ]
-    db.commit()
-    db.refresh(candidate)
-    return candidate, False
+    try:
+        db.add(candidate)
+        db.flush()
 
+        evidence_rows = []
+        for field_name, value in {"business_name": name, **fields}.items():
+            if value:
+                evidence_rows.append(
+                    BusinessCandidateEvidence(
+                        id=str(uuid.uuid4()),
+                        candidate_id=candidate.id,
+                        field_name=field_name,
+                        observed_value=str(value),
+                        source_url=source_url,
+                        observed_at=_now(),
+                        evidence_kind="public_business_source",
+                    )
+                )
 
-class SourceRequest(BaseModel):
-    name: str = Field(min_length=2, max_length=180)
-    base_url: HttpUrl
-    purpose: str = Field(min_length=8, max_length=500)
-    terms_reviewed: bool = False
-    collection_permitted: bool = False
-    robots_reviewed: bool = False
-    enabled: bool = False
-    requests_per_minute: int = Field(default=6, ge=1, le=30)
+        db.add_all(evidence_rows)
+        candidate.evidence = [
+            {
+                "field": row.field_name,
+                "value": row.observed_value,
+                "source_url": row.source_url,
+                "observed_at": row.observed_at.isoformat(),
+            }
+            for row in evidence_rows
+        ]
 
+        db.commit()
+        db.refresh(candidate)
+        return candidate, False
 
-class JobRequest(BaseModel):
-    source_id: str
-    requested_url: HttpUrl
+    except IntegrityError:
+        db.rollback()
 
-
-class CandidateRequest(BaseModel):
-    source_id: str
-    source_url: HttpUrl
-    business_name: str = Field(min_length=1, max_length=255)
-    category: str | None = Field(default=None, max_length=120)
-    city: str | None = Field(default=None, max_length=120)
-    province: str | None = Field(default=None, max_length=120)
-    address: str | None = Field(default=None, max_length=500)
-    phone: str | None = Field(default=None, max_length=40)
-    email: str | None = Field(default=None, max_length=255)
-    website: HttpUrl | None = None
-
-
-class ReviewRequest(BaseModel):
-    decision: str = Field(pattern="^(approved|rejected)$")
-
-
+        # A concurrent worker may have inserted the same dedupe key.
+        existing = db.scalar(
+            select(BusinessCandidate).where(
+                BusinessCandidate.dedupe_key == key
+            )
+        )
+        if existing is not None:
+            return existing, True
+        raise
 def _session():
     db = SessionLocal()
     try:

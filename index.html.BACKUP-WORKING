@@ -1,0 +1,173 @@
+<!DOCTYPE html><html><head><link rel="icon" href="data:,"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ubernie - Gauteng Businesses</title>
+<style>*{box-sizing:border-box}body{font-family:system-ui;margin:0;background:#f6f6f6}
+header{background:#111;color:#fff;padding:22px;text-align:center}header h1{margin:0;font-size:30px}
+.topbar{background:#FF8A00;color:#fff;text-align:center;padding:10px;font-weight:700}
+.filters{padding:16px;display:flex;gap:8px;max-width:1000px;margin:0 auto;flex-wrap:wrap}
+.filters input{flex:1;min-width:200px;padding:12px;border-radius:10px;border:1px solid #ddd}
+.filters select{padding:12px;border-radius:10px;border:1px solid #ddd;flex:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:0 16px 30px;max-width:1100px;margin:0 auto}
+.card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.badge{display:inline-block;background:#e8f5e9;color:#1b5e20;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase}
+.area-badge{background:#e3f2fd;color:#1565c0}.score{float:right;font-weight:800}.score.low{color:#d32f2f}.score.med{color:#FF8A00}.score.high{color:#2e7d32}
+.audit{background:#fff3e0;border-radius:10px;padding:10px;margin:10px 0;font-size:13px}.audit b{color:#d32f2f}
+.btn{display:block;text-align:center;text-decoration:none;padding:11px;border-radius:10px;font-weight:700;margin-top:8px;cursor:pointer;border:none;width:100%;font-size:15px}
+.btn-green{background:#25D366;color:#fff}.btn-gold{background:#FF8A00;color:#fff}.btn-dark{background:#111;color:#fff}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;overflow:auto}.modal-content{background:#fff;max-width:520px;margin:30px auto;padding:24px;border-radius:16px}
+.modal-content input,.modal-content select{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:10px}
+.upsell{border:1px solid #eee;border-radius:10px;padding:10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}.upsell label{font-size:14px}.price{font-weight:800}
+.count{text-align:center;color:#666}</style></head><body>
+<div class="topbar">🔥 Business Owner? Claim your listing - Get a FREE Audit + More Customers</div>
+<header><h1>🔥 Ubernie</h1><p>Find real businesses in SOUTH AFRICA - Audited. Verified. No Google. From Roodepoort to Cape Town.</p></header>
+<div style="max-width:1100px;margin:14px auto;padding:0 16px;display:flex;gap:10px;flex-wrap:wrap">
+<div onclick="buyAd('top')" style="flex:2;min-width:280px;background:linear-gradient(135deg,#FF8A00,#FF5722);color:#fff;padding:16px;border-radius:12px;cursor:pointer;text-align:center"><b>📢 ADVERTISE HERE - Top Banner</b><br><small>Your business here - R999/mo - 10,000+ views/mo - Click to Book</small></div>
+<div onclick="buyAd('sidebar')" style="flex:1;min-width:200px;background:#111;color:#fff;padding:16px;border-radius:12px;cursor:pointer;text-align:center"><b>⭐ Sponsored Spot</b><br><small>R499/mo - Click to Book</small></div>
+<div onclick="openAddBusiness()" style="flex:1;min-width:200px;background:#25D366;color:#fff;padding:16px;border-radius:12px;cursor:pointer;text-align:center"><b>➕ ADD YOUR BUSINESS - FREE</b><br><small>Not listed? Add in 60 seconds</small></div>
+</div>
+<div style="text-align:center;color:#666;font-size:13px">⭐ 4.8/5 from SA businesses | ✅ 1847+ Listed | 🔥 12 Claimed This Week | 🇿🇦 100% South African Owned</div>
+<div class="filters"><input id="q" placeholder="Search pharmacy, school, shisanyama..."><select id="cat"><option value="">All Categories</option></select><select id="area" onchange="render()"><option value="">All Areas - South Africa</option></select>
+<div class="count" id="count"></div><div class="grid" id="grid"></div>
+<div class="modal" id="modal"><div class="modal-content" id="modalContent"></div></div>
+<script>
+
+const MY_WA="27600000000"; // <-- CHANGE TO YOUR NUMBER
+// ===== REMOTEPAY CONFIG - CHANGE THESE =====
+const REMOTEPAY = {
+  // SimplyBlu PaymentLinks - Create ONE link per service in SimplyBlu dashboard, paste here
+  // If you don't have them yet, leave as '#' and it will fallback to WhatsApp
+  paymentLinks: {
+    website: 'https://pay.simplyblu.co.za/website-1499', // R1499
+    photos: 'https://pay.simplyblu.co.za/photos-799',
+    whatsapp: 'https://pay.simplyblu.co.za/whatsapp-499',
+    google: 'https://pay.simplyblu.co.za/google-699',
+    hours: 'https://pay.simplyblu.co.za/hours-499',
+    featured: 'https://pay.simplyblu.co.za/featured-299',
+    domain: 'https://pay.simplyblu.co.za/domain-299',
+    web_hosting: 'https://pay.simplyblu.co.za/hosting-999',
+    email_hosting: 'https://pay.simplyblu.co.za/email-599',
+    logo: 'https://pay.simplyblu.co.za/logo-499',
+    care_plan: 'https://pay.simplyblu.co.za/careplan-499', // R499/mo
+    ad_top: 'https://pay.simplyblu.co.za/ad-top-999',
+    ad_sponsored: 'https://pay.simplyblu.co.za/ad-499',
+  },
+  // Whatomate Webhook - Get this from Whatomate > Automations > Webhook
+  whatomateWebhook: 'https://api.whatomate.com/webhook/YOUR-WHATOMATE-ID',
+  // Your WhatsApp for fallback / manual
+  fallbackWA: MY_WA,
+};
+
+let data=[];
+fetch('listings.json').then(r=>r.json()).then(j=>{data=j;
+let cats=[...new Set(j.map(x=>x.category))].sort(); let areas=[...new Set(j.map(x=>x.area))].sort();
+document.getElementById('cat').innerHTML='<option value="">All Categories</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+document.getElementById('area').innerHTML='<option value="">All Areas - South Africa</option>'+areas.map(a=>`<option>${a}</option>`).join('');
+render();});
+function render(){
+ let q=document.getElementById('q').value.toLowerCase(); let c=document.getElementById('cat').value; let a=document.getElementById('area').value;
+ let f=data.filter(x=>(!c||x.category===c)&&(!a||x.area===a)&&((x.name+' '+x.address+' '+x.category+' '+x.area).toLowerCase().includes(q)));
+ document.getElementById('count').textContent=`Showing ${f.length} audited businesses in South Africa`;
+ document.getElementById('grid').innerHTML=f.map((x,i)=>{
+  let au=x.audit||{score:0,missing:[]}; let cls=au.score<40?'low':au.score<70?'med':'high';
+  return `<div class="card"><span class="badge">${x.category}</span> <span class="badge area-badge">${x.area}</span><span class="score ${cls}">Audit ${au.score}/100</span>
+  <h3 style="margin:8px 0 4px">${x.name}</h3><div style="color:#666;font-size:14px">📍 ${x.address||x.area}</div>
+  <div class="audit">⚠️ <b>Missing:</b> ${au.missing.join(', ').replaceAll('_',' ')}<br>💰 <b>Losing ~R18,000/mo</b> - No website, no photos, no WhatsApp = customers go to competitors<br><small>See full breakdown in Claim →</small></div>
+  <button class="btn btn-green" onclick="enquire(${data.indexOf(x)})">💬 Enquire via Ubernie</button>
+  <button class="btn btn-gold" onclick="openClaim(${data.indexOf(x)})">⭐ CLAIM THIS LISTING - FREE AUDIT</button>
+  </div>`}).join('')||'<p style="grid-column:1/-1;text-align:center">No results</p>';
+}
+document.getElementById('q').addEventListener('input',render); document.getElementById('cat').addEventListener('change',render); document.getElementById('area').addEventListener('change',render);
+function enquire(idx){let x=data[idx]; window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent('Hi Ubernie! I want to contact '+x.name+' in '+x.area)}`,'_blank');}
+function openClaim(idx){
+ let x=data[idx]; let au=x.audit||{missing:[],score:0};
+ let services=[
+  {id:'website',label:'🌐 Professional Website (1 page)',price:1499,checked:!au.has_website},
+  {id:'photos',label:'📸 Professional Photos + Google Photos',price:799,checked:true},
+  {id:'whatsapp',label:'💬 WhatsApp Business Setup + Button',price:499,checked:true},
+  {id:'google',label:'📍 Google Business Profile Fix',price:699,checked:true},
+  {id:'hours',label:'🕐 Opening Hours + Booking System',price:499,checked:true},
+  {id:'featured',label:'⭐ Featured on Ubernie - Top of Search (30 days)',price:299,checked:true},
+  {id:'domain',label:'🌐 Domain Registration - yourbusiness.co.za (1 year)',price:299,checked:false},
+  {id:'web_hosting',label:'☁️ Web Hosting - Fast + Secure + SSL (1 year)',price:999,checked:false},
+  {id:'email_hosting',label:'📧 Email Hosting - info@yourbusiness.co.za (5 mailboxes / year)',price:599,checked:false},
+  {id:'logo',label:'🎨 Logo + Business Card Design',price:499,checked:false},
+ ];
+ window._claimServices=services; window._claimBiz=x;
+ let html=`<h2>⭐ Claim: ${x.name}</h2><p style="color:#666">${x.address} - ${x.area}</p>
+ <div style="background:#ffebee;padding:12px;border-radius:10px"><b>🔍 YOUR FREE AUDIT: ${au.score}/100</b><br>Missing: ${au.missing.join(', ').replaceAll('_',' ')}<br><small>You are losing customers every day without these.</small></div>
+ <h3>👤 Your Details</h3>
+ <input id="ownerName" placeholder="Your Full Name *"><input id="ownerPhone" placeholder="Your WhatsApp Number *"><input id="ownerEmail" placeholder="Email">
+ <h3>🛒 Fix My Missing Services (Tick what you want)</h3>
+ ${services.map((s,i)=>`<div class="upsell"><label><input type="checkbox" ${s.checked?'checked':''} onchange="toggleService(${i},this.checked)"> ${s.label}</label><span class="price">R${s.price}</span></div>`).join('')}
+ <div style="text-align:right;font-weight:800;font-size:18px" id="total">Total: R<span id="totalVal">0</span> <small style="font-weight:400">(Claim itself is FREE)</small></div>
+ <button class="btn btn-green" onclick="submitClaim()">✅ CLAIM + Send Audit on WhatsApp</button>
+ <div style="text-align:center;margin:8px 0;font-size:13px;color:#666">OR Pay Instantly via RemotePay / SimplyBlu (Card) - No waiting</div>
+ <button class="btn btn-dark" onclick="payNowClaim()">💳 PAY NOW - Secure Card via SimplyBlu</button>
+ <div id="payLinks" style="display:none;margin-top:10px"></div>
+ <button class="btn btn-dark" onclick="closeModal()">Close</button>`;
+ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').style.display='block'; updateTotal();
+}
+function toggleService(i,checked){window._claimServices[i].checked=checked; updateTotal();}
+function updateTotal(){let t=window._claimServices.filter(s=>s.checked).reduce((a,s)=>a+s.price,0); document.getElementById('totalVal').textContent=t;}
+function sendToWhatomate(payload){
+  // Fire to Whatomate - don't block user if it fails
+  try{
+    fetch(REMOTEPAY.whatomateWebhook, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).catch(()=>{});
+  }catch(e){}
+  // Also fallback to WhatsApp so you never lose a lead
+  const msg = `🔥 UBernie CLAIM REQUEST\n\nBusiness: ${payload.business}\nArea: ${payload.area}\nAudit: ${payload.audit}/100\nOwner: ${payload.owner}\nPhone: ${payload.phone}\nServices: ${payload.services.map(s=>s.label+' R'+s.price).join(', ')}\nTotal: R${payload.total}`;
+  window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+function submitClaim(){
+ let name=document.getElementById('ownerName').value; let phone=document.getElementById('ownerPhone').value;
+ if(!name||!phone){alert('Please enter your name + WhatsApp number'); return;}
+ let x=window._claimBiz; let chosen=window._claimServices.filter(s=>s.checked);
+ let total=chosen.reduce((a,s)=>a+s.price,0);
+ let msg=`🔥 UBernie CLAIM REQUEST\n\nBusiness: ${x.name}\nArea: ${x.area}\nAddress: ${x.address}\nAudit Score: ${x.audit.score}/100\nMissing: ${x.audit.missing.join(', ')}\n\nOwner: ${name}\nPhone: ${phone}\nEmail: ${document.getElementById('ownerEmail').value}\n\nServices Wanted:\n${chosen.map(s=>`- ${s.label} - R${s.price}`).join('\n')}\n\nTOTAL UPSELL: R${total}\nClaim Fee: FREE`;
+ window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent(msg)}`,'_blank');
+ alert('✅ Claim sent! We will WhatsApp you with your audit + quote.'); closeModal();
+}
+function closeModal(){document.getElementById('modal').style.display='none';}
+
+function buyAd(slot){
+ let msg = `📢 UBernie AD SPACE BOOKING\n\nI want to book: ${slot} Ad Slot\nTop Banner R999/mo OR Sponsored R499/mo\n\nMy Business: \nMy WhatsApp: `;
+ window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function openAddBusiness(){
+ let html = `<h2>➕ Add Your Business - FREE</h2><p>Get listed on Ubernie South Africa in 60 seconds</p>
+ <input id="newName" placeholder="Business Name *"><input id="newCat" placeholder="Category - e.g. Airbnb, Pharmacy, Shisanyama *"><input id="newArea" placeholder="Area - e.g. Roodepoort, Durban, Cape Town *"><input id="newAddr" placeholder="Address / Street"><input id="newPhone" placeholder="WhatsApp Number *"><input id="newOwner" placeholder="Your Name *">
+ <button class="btn btn-green" onclick="submitAddBusiness()">✅ ADD MY BUSINESS FREE</button><button class="btn btn-dark" onclick="closeModal()">Close</button>`;
+ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').style.display='block';
+}
+function submitAddBusiness(){
+ let n=document.getElementById('newName').value; let c=document.getElementById('newCat').value; let a=document.getElementById('newArea').value; let ph=document.getElementById('newPhone').value;
+ if(!n||!c||!a||!ph){alert('Please fill Business Name, Category, Area, WhatsApp'); return;}
+ let msg = `➕ NEW BUSINESS - ADD TO UBernie\n\nBusiness: ${n}\nCategory: ${c}\nArea: ${a}\nAddress: ${document.getElementById('newAddr').value}\nOwner: ${document.getElementById('newOwner').value}\nWhatsApp: ${ph}\n\nPlease add me - FREE listing + FREE Audit`;
+ window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent(msg)}`,'_blank');
+ alert('✅ Sent! We will add you + send your FREE Audit.'); closeModal();
+}
+
+function payNowClaim(){
+  let name=document.getElementById('ownerName').value; let phone=document.getElementById('ownerPhone').value;
+  if(!name||!phone){alert('Please enter your name + WhatsApp number first'); return;}
+  let chosen=window._claimServices.filter(s=>s.checked);
+  if(chosen.length===0){alert('Tick at least 1 service to pay for'); return;}
+  // Send to Whatomate first - so automation starts even if they don't pay yet
+  sendToWhatomate({type:'claim_pay_attempt', business: window._claimBiz.name, area: window._claimBiz.area, audit: window._claimBiz.audit.score, owner: name, phone: phone, email: document.getElementById('ownerEmail').value, services: chosen, total: chosen.reduce((a,s)=>a+s.price,0)});
+  // Show individual SimplyBlu links - Simplest, works TODAY without Standard Bank merchant
+  let html = chosen.map(s=>{
+    let link = REMOTEPAY.paymentLinks[s.id] || '#';
+    return `<a href="${link}" target="_blank" style="display:block;background:#f6f6f6;padding:10px;border-radius:10px;margin:6px 0;text-decoration:none;color:#111">💳 Pay ${s.label} - <b>R${s.price}</b> → Pay via SimplyBlu</a>`;
+  }).join('');
+  html += `<p style="font-size:12px;color:#666">After payment, Whatomate will auto-send your receipt + next steps on WhatsApp. Powered by RemotePay.</p>`;
+  document.getElementById('payLinks').innerHTML = html;
+  document.getElementById('payLinks').style.display='block';
+  alert('✅ Claim sent to Whatomate! Now tap a Pay link below to pay by card.');
+}
+
+
+// Hook into existing render - wrap it to also filter by province/metro/suburb
+
+
+
+</script><footer style="text-align:center;padding:20px;color:#888;font-size:12px">© 2026 Ubernie (Pty) Ltd - South Africa | <a href="#" onclick="alert('POPIA: We protect your data. We never sell your personal info without consent. Contact us to delete your listing.')">POPIA & Privacy</a> | <a href="#" onclick="alert('Terms: Listings are free. Claimed listings are verified by owner. Ubernie is not responsible for business services.')">Terms</a> | Made in 🇿🇦 South Africa</footer></body></html>
