@@ -42,7 +42,7 @@ footer{padding:18px 5%;display:flex;justify-content:space-between;flex-wrap:wrap
 <div style="padding:10px 5%;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="btnAll" onclick="setMode('all')">All Businesses (2,693)</button><button class="btn-outline" id="btnCars" onclick="setMode('cars')">Cars Only (1,092)</button><button class="btn-outline" id="btnLocal" onclick="setMode('local')">Food / Health / Local</button></div><div style="padding:20px 5%;background:#00C853;color:#000"><h1 style="margin:0">Tyres in South Africa - 60 Businesses</h1><p style="margin:4px 0 0">Find, compare, claim. Audit scores, monthly loss, FREE Claim + Audit - fixes from R299. <a href="index.html" style="color:#000;font-weight:800">← Back to All</a></p></div><div class="bar"><h2>Popular in South Africa</h2><span id="total"></span></div>
 <div class="grid" id="list"></div>
 <section class="trust"><div><b>Why South Africans Trust Ubernie</b>All partners are vetted and verified.</div><div><b>Transparent Pricing</b>Compare quotes upfront, no hidden fees.</div><div><b>Real Reviews</b>Honest ratings from real customers.</div><div><b>Revenue Audit Score</b>We audit business health for your peace of mind.</div></section>
-<section class="cta" id="list"><div><h2>List your business and grow</h2><p>Reach thousands of car owners across South Africa.</p></div><a class="btn" href="https://wa.me/27735558440?text=Hi%20Ubernie,%20I%20want%20to%20claim%20my%20business%20-%20FREE%20audit">Claim FREE - Audit + Fixes</a></section>
+<section class="cta" id="list"><div><h2>List your business and grow</h2><p>Reach thousands of car owners across South Africa.</p></div><a class="btn" href="claim.html">Claim FREE - Audit + Fixes</a></section>
 <footer><span>UBERNIE.CO.ZA</span><span>About - Contact - Help Centre - Terms - Privacy</span><span>2026 Ubernie.co.za - Made in South Africa</span></footer>
 <script>
 let ALL=[],CAT='';
@@ -76,7 +76,7 @@ const REMOTEPAY = {
   whatomateWebhook: 'https://api.whatomate.com/webhook/YOUR-WHATOMATE-ID',
   fallbackWA: MY_WA,
 };
-function openClaim(idx){
+function openClaim(idx){ let x=ALL[idx]; if(x){ location.href="claim.html?id="+(x.id||""); return; }
  let x=(typeof ALL!=='undefined'?ALL:(window.data||window.listings||[]))[idx]; if(!x){alert('Listing not found');return;}
  let au=x.audit||{missing:[],score:0};
  let services=[
