@@ -63,3 +63,7 @@ node_modules/
 backend/node_modules/
 backend/*.db
 backend/uploads/
+node_modules/
+backend/node_modules/
+backend/*.db
+backend/uploads/
