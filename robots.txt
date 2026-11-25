@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ubernie.co.za/sitemap.xml
