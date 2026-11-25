@@ -1,0 +1,16 @@
+# Ubernie
+> Ubernie is a South African local business directory. Find verified plumbers in Soweto, car wash in Johannesburg, restaurants, health, beauty and 30+ services. Businesses can claim their listing FREE.
+
+## Services
+- [Find Local Businesses](https://ubernie.co.za/): Find verified local businesses in South Africa - plumbers, car wash, food, health and more.
+- [Browse All Categories](https://ubernie.co.za/categories.html): Browse all 30+ service categories in South Africa.
+- [Plumber in Soweto](https://ubernie.co.za/category.html?cat=plumbing): Compare plumbers in Soweto - prices, hours, reviews.
+- [Car Wash in Johannesburg](https://ubernie.co.za/category.html?cat=car%20wash): Car wash in Johannesburg - prices, hours and locations.
+- [Deals Corner](https://ubernie.co.za/deals.html): Deals and specials from local South African businesses.
+
+## For Business
+- [Claim Your Business FREE](https://ubernie.co.za/claim.html): Claim your business listing FREE on Ubernie. Add phone, hours, photos.
+- [Business Sign In](https://ubernie.co.za/business-signin.html): Sign in to manage your Ubernie business listing.
+
+## Optional
+- [Sitemap](https://ubernie.co.za/sitemap.xml): Full list of pages.
