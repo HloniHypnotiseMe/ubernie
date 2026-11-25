@@ -34,3 +34,22 @@ async function finish(){
  next(4); btn.disabled=false; btn.textContent='Complete Onboarding →';
 }
 </script></body></html>
+<script>
+/* FIX: Override broken finish() - never wait for backend */
+async function finish(){
+  if(!document.getElementById('terms').checked){alert('Accept Terms');return;}
+  let btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Saving...';
+  let claim={id, owner:document.getElementById('owner').value.trim(), phone:document.getElementById('phone').value.trim(), email:document.getElementById('email').value.trim(), biz:document.getElementById('biz').value.trim(), business:document.getElementById('biz').value.trim(), category:document.getElementById('category').value, city:document.getElementById('city').value.trim(), area:document.getElementById('area').value.trim(), idnum:document.getElementById('idnum').value.trim(), bank:document.getElementById('bank').value.trim(), desc:document.getElementById('desc').value.trim(), hours:document.getElementById('hours').value.trim(), status:'PENDING', at:new Date().toISOString()};
+  try{ let all=JSON.parse(localStorage.getItem('ubernie_claims')||'[]'); all.push(claim); localStorage.setItem('ubernie_claims', JSON.stringify(all)); }catch(e){}
+  document.getElementById('summary').textContent=claim.biz+' - '+claim.owner+' - '+claim.phone;
+  try{ let all=JSON.parse(localStorage.getItem('ubernie_claims')||'[]'); document.getElementById('waitPos').textContent='# '+(all.length+12); }catch(e){}
+  next(4); btn.disabled=false; btn.textContent='Complete Onboarding →';
+  let subject="NEW CLAIM: "+claim.biz+" - "+claim.phone;
+  let body="Business: "+claim.biz+"\nOwner: "+claim.owner+"\nPhone: "+claim.phone+"\nEmail: "+claim.email+"\nCategory: "+claim.category+"\nCity: "+claim.city+"\nDesc: "+claim.desc;
+  document.getElementById('emailStatus').textContent="✅ Saved locally - sending email in background...";
+  try{
+    let ctrl=new AbortController(); setTimeout(()=>ctrl.abort(),3000);
+    fetch("https://formsubmit.co/ajax/claims@ubernie.co.za",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({_subject:subject,_template:"table",_captcha:"false",_replyto:claim.email,Business:claim.biz,Owner:claim.owner,Phone:claim.phone,Email:claim.email,Category:claim.category,City:claim.city,Area:claim.area,Description:claim.desc,Hours:claim.hours,Status:"PENDING",Submitted:claim.at}),signal:ctrl.signal}).then(r=>{ document.getElementById('emailStatus').textContent=r.ok?"✅ Email sent to claims@ubernie.co.za":"⚠️ Auto-email blocked - email claims@ubernie.co.za manually. Claim saved."; }).catch(()=>{ document.getElementById('emailStatus').textContent="⚠️ Auto-email timed out - claim saved locally. Email claims@ manually if needed."; });
+  }catch(e){}
+}
+</script>
