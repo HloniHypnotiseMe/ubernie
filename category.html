@@ -123,7 +123,7 @@ function render(){
   const tot=document.getElementById('total'); if(tot) tot.textContent=filtered.length+' listed';
   list.innerHTML=filtered.slice(0,100).map(x=>{
     const rv=x.reviews||0; const r=x.rating||0; const s=x.audit?.score ?? 0;
-    return `<div class="card"><div class="card-body"><span style="background:#e6f7d4;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700">VERIFIED</span><h3>${x.name||''}</h3><div class="muted">${x.area||''}, ${x.province||''}</div><div class="stars">${rv>0?'⭐ '+r+' ('+rv+' reviews)':'⭐ New Listing - Be first to review'}</div><div class="row"><div><div class="muted">${x.phone||'Claim to add phone & verify'}</div><div class="muted">${x.category||''} - ${x.phone?'Verified phone':'Claim to add phone'}</div><a class="wa" href="${waLink(x)}">WhatsApp</a> <a class="wa" href="business.html?id=${x.id||''}">View →</a></div><div class="score"><small>Revenue Audit</small><b>${s}</b><a class="claim" href="javascript:void(0)" onclick="openClaim(ALL.indexOf(x))">Claim - FREE Audit</a></div></div></div></div>`;
+    return `<div class="card"><div class="card-body"><span style="background:#e6f7d4;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700">VERIFIED</span><h3>${x.name||''}</h3><div class="muted">${x.area||''}, ${x.province||''}</div><div class="stars">${rv>0?'⭐ '+r+' ('+rv+' reviews)':'⭐ New Listing - Be first to review'}</div><div class="row"><div><div class="muted">${x.phone||'Claim to add phone & verify'}</div><div class="muted">${x.category||''} - ${x.phone?'Verified phone':'Claim to add phone'}</div><a class="wa" href="${waLink(x)}">WhatsApp</a> <a class="wa" href="business.html?id=${x.id||''}">View →</a></div><div class="score"><small>Revenue Audit</small><b>${s}</b><a class="claim" href="javascript:void(0)" onclick="openClaim(ALL.indexOf(x))">Claim This Listing - FREE</a></div></div></div></div>`;
   }).join('')||'<p>No results</p>';
 }
 function setMode(m){ CAT = m==='cars' ? 'mechanic' : (m==='local' ? '' : ''); if(m==='local'){/* show all non-car - keep simple */ CAT='';} render(); }
@@ -227,3 +227,8 @@ function payNowClaim(){
   alert('✅ Claim sent to Whatomate! Now tap a Pay link below to pay by card.');
 }
 </script></div></body></html>
+<script>/* UBERNIE_CLAIM_FIX */
+function openClaim(idx){ try{ var x=(typeof ALL!=='undefined'&&ALL[idx])?ALL[idx]:null; if(x&&x.id){ location.href='claim.html?id='+encodeURIComponent(x.id); return; } }catch(e){} location.href='claim.html'; }
+// Backup: if any Claim link is tapped, force it to claim.html even if ALL failed
+document.addEventListener('click', function(e){ var a=e.target.closest&&e.target.closest('a.claim'); if(a){ e.preventDefault(); var href=a.getAttribute('href')||''; if(href && href.indexOf('claim.html')>-1){ location.href=href; return; } try{ var card=a.closest('.card'); var h=card?card.querySelector('h3'):null; if(h){ location.href='claim.html?biz='+encodeURIComponent(h.textContent.trim()); return; } }catch(err){} location.href='claim.html'; } });
+</script>
