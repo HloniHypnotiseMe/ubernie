@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Claim - Ubernie</title>
-<style>body{font-family:system-ui;max-width:600px;margin:0 auto;padding:16px} .step{display:none} .step.active{display:block} input,select,textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:8px;font-size:16px} button{background:#111;color:#fff;padding:14px 18px;border:0;border-radius:8px;width:100%;margin-top:10px;min-height:48px;font-size:16px} .bar{height:8px;background:#eee;border-radius:4px;overflow:hidden} .bar div{height:100%;background:#ffe600;width:25%} .ok{color:green} .warn{background:#fff3cd;padding:10px;border-radius:8px}</style>
-</head><body>
+<style>body{font-family:system-ui;max-width:600px;margin:0 auto;padding:16px;padding-bottom:90px} .topbar{position:sticky;top:0;z-index:99;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;margin:-16px -16px 16px -16px} .topbar a{color:#ffe600;text-decoration:none;font-weight:700;font-size:14px} .topbar b{font-size:16px} .bottombar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:flex;gap:8px;padding:10px;z-index:99} .bottombar a{flex:1;text-align:center;text-decoration:none} .bottombar a button{margin:0} .step{display:none} .step.active{display:block} input,select,textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:8px;font-size:16px} button{background:#111;color:#fff;padding:14px 18px;border:0;border-radius:8px;width:100%;margin-top:10px;min-height:48px;font-size:16px} .bar{height:8px;background:#eee;border-radius:4px;overflow:hidden} .bar div{height:100%;background:#ffe600;width:25%} .ok{color:green} .warn{background:#fff3cd;padding:10px;border-radius:8px}</style>
+</head><body><div class="topbar"><b>UBERNIE</b><span><a href="index.html">Directory</a> &nbsp;|&nbsp; <a href="business-signin.html">Sign In</a></span></div>
 <h1 id="bizTitle">Claim Your Business - FREE</h1>
 <div class="warn">Listing stays <b>Pending / Waiting List</b> until KYC + Onboarding = 100%.</div>
 <div class="bar"><div id="prog"></div></div><p id="progTxt">Step 1 of 4 - Claim</p>
@@ -33,7 +33,7 @@ async function finish(){
  document.getElementById('emailStatus').textContent=sent?"✅ Email sent to claims@ubernie.co.za":"⚠️ FormSubmit blocked by BillionMail - your email app opened pre-filled to claims@ - just press SEND. Also saved locally.";
  next(4); btn.disabled=false; btn.textContent='Complete Onboarding →';
 }
-</script></body></html>
+</script><div class="bottombar"><a href="index.html"><button>← Directory</button></a><a href="business-signin.html"><button style="background:#ffe600;color:#111">Sign In With OTP →</button></a></div></body></html>
 <script>
 /* FIX: Override broken finish() - never wait for backend */
 async function finish(){

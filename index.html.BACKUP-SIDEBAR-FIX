@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Find Local Businesses in South Africa - Plumbers, Car Wash & More | Ubernie</title>
+<meta name="description" content="Find verified local businesses in South Africa. Compare plumbers in Soweto, car wash in Johannesburg, and 30+ services. Claim your business FREE.">
+<link rel="canonical" href="https://ubernie.co.za/">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,Arial}
+body{background:#0b0f0c;color:#fff}
+a{color:inherit;text-decoration:none}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 5%;background:#0a0d0a;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;font-size:22px;letter-spacing:.5px}.logo span{color:#7ED321}.logo small{color:#7ED321;font-size:11px}
+nav{display:flex;gap:18px;font-size:14px;opacity:.9}nav a:hover{color:#7ED321}
+.btn{background:#7ED321;color:#000;padding:10px 16px;border-radius:8px;font-weight:700;border:0;cursor:pointer}
+.btn-outline{border:1px solid #7ED321;color:#7ED321;padding:10px 14px;border-radius:8px;font-weight:700}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;padding:36px 5%;background:linear-gradient(180deg,#0b0f0c,#12210f)}
+.hero h1{font-size:38px;line-height:1.1}.hero h1 em{color:#7ED321;font-style:normal}
+.hero p{opacity:.75;margin:12px 0 18px}
+.search{display:flex;gap:8px;background:#fff;color:#111;padding:8px;border-radius:12px;flex-wrap:wrap}
+.search select,.search input{flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;min-width:140px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.pill{background:#1a241a;border:1px solid #2a3a2a;padding:7px 12px;border-radius:20px;font-size:13px;cursor:pointer}.pill.active{background:#7ED321;color:#000;font-weight:700}
+.hero-img{border-radius:14px;overflow:hidden;background:#1a241a;display:flex;align-items:center;justify-content:center;min-height:260px;text-align:center;padding:20px}
+.hero-img b{font-size:22px}.hero-img span{color:#7ED321}
+.bar{padding:14px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;padding:10px 5% 30px}
+.card{background:#fff;color:#111;border-radius:14px;overflow:hidden}
+.card-top{height:130px;background:linear-gradient(135deg,#1a2e1a,#7ED321);display:flex;align-items:center;justify-content:center;font-size:42px}
+.card-body{padding:14px}.card-body h3{font-size:16px}.muted{color:#666;font-size:13px}
+.stars{color:#f5a623;font-size:14px;margin:6px 0}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-top:10px}
+.score{background:#0b0f0c;color:#fff;border-radius:10px;padding:10px;text-align:center;min-width:86px}.score b{color:#7ED321;font-size:22px;display:block}
+.wa{background:#25D366;color:#fff;padding:8px 10px;border-radius:8px;font-weight:700;display:inline-block;margin-top:8px;font-size:13px}
+.claim{background:#000;color:#fff;padding:8px 10px;border-radius:8px;display:inline-block;margin-top:6px;font-size:13px;width:100%;text-align:center}
+.trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;padding:20px 5%;background:#12210f}
+.trust b{display:block}
+.cta{padding:28px 5%;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer{padding:18px 5%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;opacity:.7;font-size:13px;border-top:1px solid #222}
+@media(max-width:700px){.hero{grid-template-columns:1fr}nav{display:none}.hero h1{font-size:30px}}
+.upsell{border:1px solid #eee;border-radius:10px;padding:10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}.upsell label{font-size:14px}.price{font-weight:800}.modal-content input{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:10px}.btn{display:block;text-align:center;text-decoration:none;padding:11px;border-radius:10px;font-weight:700;margin-top:8px;cursor:pointer;border:none;width:100%;font-size:15px}.btn-green{background:#25D366;color:#fff}.btn-dark{background:#111;color:#fff}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;overflow:auto}.modal-content{background:#fff;max-width:520px;margin:30px auto;padding:24px;border-radius:16px;color:#111}</style>
+<style>
+header, .hero, #brandTitle { color:#fff !important; }
+body { color:#111; background:#fff; }
+</style>
+
+
+
+<style id="ubernie-mobile-fix">
+/* ===== MOBILE FIX - Ubernie ===== */
+*{max-width:100%;box-sizing:border-box}
+html,body{overflow-x:hidden}
+img,video,iframe{max-width:100%;height:auto}
+/* Nav - stack, don't overflow */
+nav,.nav,.header,.topbar{flex-wrap:wrap!important;gap:8px!important}
+nav a,.nav a{padding:10px 8px!important;font-size:14px!important;white-space:normal!important}
+/* Hero */
+.hero,.banner{padding:24px 16px!important;text-align:center}
+.hero h1,.banner h1{font-size:28px!important;line-height:1.15!important}
+.hero p{font-size:15px!important}
+/* Grids -> 1 col on phone, 2 on tablet */
+.grid,.cards,.listings,.categories{grid-template-columns:1fr!important;gap:12px!important}
+.card{padding:14px!important}
+/* Buttons - full width, thumb size */
+button,.btn,.cta,a.button{min-height:48px!important;padding:12px 16px!important;font-size:15px!important}
+/* Forms */
+input,select,textarea{width:100%!important;font-size:16px!important;padding:12px!important}
+/* Tables - scroll, don't break */
+table{display:block!important;overflow-x:auto!important;white-space:nowrap}
+.sidebar,.filter{width:100%!important;position:static!important;margin-bottom:16px}
+@media(min-width:640px){
+  .grid,.cards,.listings,.categories{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(min-width:1024px){
+  .grid,.cards,.listings{grid-template-columns:repeat(3,1fr)!important}
+  .categories{grid-template-columns:repeat(4,1fr)!important}
+}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Ubernie","url":"https://ubernie.co.za/","description":"Find local businesses in South Africa","potentialAction":{"@type":"SearchAction","target":"https://ubernie.co.za/category.html?cat={search_term_string}","query-input":"required name=search_term_string"}}</script></head><body>
+<header><div class="logo">UBERNIE<span>.CO.ZA</span></div><nav><a href="categories.html">Find Services</a><a href="mechanic.html">Car-La-Hurry</a><a href="restaurant.html">Food - Idla Nathi</a><a href="health.html">MPILO</a><a href="categories.html">For Business</a><a href="deals.html" style="color:#FFD600;font-weight:800">Deals Corner</a></nav><div><a class="btn-outline" href="claim.html">Claim Your Business - FREE</a> <a class="btn" href="business-signin.html">Business Sign In</a></div></header>
+<section class="hero"><div><h1>UBERNIE - Find <em>Idla Nathi</em>, <em>Buhle</em>, <em>DrinkingWell</em> & More Near You</h1><p>South Africa's trusted marketplace. 2,693 verified businesses across 9 provinces. Find it, compare it, book it - in 2 minutes.</p>
+<div class="search"><select id="cat"><option value="">All Services</option><option>accommodation</option><option>airbnb</option><option>automotive</option><option>beauty</option><option>cafe</option><option>car rental</option><option>car repair</option><option>car wash</option><option>day-care</option><option>dealership</option><option>education</option><option>electronics</option><option>fashion</option><option>fitness</option><option>food</option><option>grocery</option><option>hairdresser</option><option>health</option><option>hotel</option><option>liquor</option><option>mechanic</option><option>pets</option><option>pharmacy</option><option>property</option><option>restaurant</option><option>services</option><option>spare parts</option><option>supermarket</option><option>tyres</option></select><select id="prov"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select><input id="q" placeholder="Search name or area..."><button class="btn" onclick="render()">Search</button></div>
+<div class="pills" id="pills"></div><p id="count" style="margin-top:12px"></p></div>
+<div class="hero-img"><div><b>4.8/5</b><br>Trusted by 50,000+ South African drivers<br><br><span>VERIFIED PARTNERS - NO HIDDEN FEES</span></div></div></section>
+<div style="padding:10px 5%;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="btnAll" onclick="setMode('all')">All Businesses (2,693)</button><button class="btn-outline" id="btnCars" onclick="setMode('cars')">Cars Only (1,092)</button><button class="btn-outline" id="btnLocal" onclick="setMode('local')">Food / Health / Local</button></div><div style="padding:14px 5%;background:#111;color:#fff;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><span>🍻 <b>DRINKINGWELL</b> - <b>SMARTDRINKER</b> Take Me Home service, like Goodfellas. Book a safe ride home.</span><a href="drinkingwell.html" style="background:#FFD600;color:#000;padding:8px 14px;border-radius:8px;font-weight:800">Book SmartDrinker →</a></div><div style="padding:18px 5%;background:#FFD600;color:#000;margin:16px 5%;border-radius:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><span><b>🔥 DEALS CORNER</b> - Vouchers & Discounts. Claim & save.</span><a href="deals.html" style="background:#000;color:#fff;padding:10px 16px;border-radius:8px;font-weight:800">View All Deals →</a></div><div class="bar"><h2>Popular in South Africa</h2><span id="total"></span></div>
+<div class="grid" id="list"></div>
+<section class="trust"><div><b>Why South Africans Trust Ubernie</b>Listings are being verified. Claimed businesses show verified phone + vouchers.</div><div><b>Transparent Pricing</b>Compare quotes upfront, no hidden fees.</div><div><b>Real Reviews</b>Honest ratings from real customers.</div><div><b>Revenue Audit Score</b>We audit business health for your peace of mind.</div></section>
+<section class="cta" id="list"><div><h2>List your business and grow</h2><p>Reach thousands of car owners across South Africa.</p></div><a class="btn" href="claim.html">Claim FREE - Audit + Fixes</a></section>
+<footer><span>UBERNIE.CO.ZA</span><span>About - Contact - Help Centre - Terms - Privacy</span><span>2026 Ubernie.co.za - Made in South Africa</span>
+
+<script>
+let ALL=[]; let CAT="";
+async function load(){
+  try{
+    const r=await fetch('listings.json'); const j=await r.json();
+    ALL=Array.isArray(j)?j:(j.listings||j.businesses||[]);
+  }catch(e){ ALL=[]; }
+  render();
+}
+function waLink(x){ return 'https://wa.me/27735558440?text='+encodeURIComponent('Hi Ubernie, I want '+ (x.name||'')); }
+function render(){
+  const q=(document.getElementById('q')?.value||'').toLowerCase();
+  const prov=document.getElementById('prov')?.value||'';
+  const list=document.getElementById('list'); if(!list) return;
+  const filtered=ALL.filter(x=>{
+    if(CAT && (x.category||'')!==CAT) return false;
+    if(prov && (x.province||'')!==prov) return false;
+    if(q && !((x.name||'').toLowerCase().includes(q) || (x.area||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+  const c=document.getElementById('count'); if(c) c.textContent=filtered.length+' businesses found';
+  const tot=document.getElementById('total'); if(tot) tot.textContent=filtered.length+' listed';
+  list.innerHTML=filtered.slice(0,100).map(x=>{
+    const rv=x.reviews||0; const r=x.rating||0; const s=x.audit?.score ?? 0;
+    return `<div class="card"><div class="card-body"><span style="background:#e6f7d4;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700">VERIFIED</span><h3>${x.name||''}</h3><div class="muted">${x.area||''}, ${x.province||''}</div><div class="stars">${rv>0?'⭐ '+r+' ('+rv+' reviews)':'⭐ New Listing - Be first to review'}</div><div class="row"><div><div class="muted">${x.phone||'Claim to add phone & verify'}</div><div class="muted">${x.category||''} - ${x.phone?'Verified phone':'Claim to add phone'}</div><a class="wa" href="${waLink(x)}">WhatsApp</a> <a class="wa" href="business.html?id=${x.id||''}">View →</a></div><div class="score"><small>Revenue Audit</small><b>${s}</b><a class="claim" href="javascript:void(0)" onclick="openClaim(ALL.indexOf(x))">Claim This Listing - FREE</a></div></div></div></div>`;
+  }).join('')||'<p>No results</p>';
+}
+function setMode(m){ CAT = m==='cars' ? 'mechanic' : (m==='local' ? '' : ''); if(m==='local'){/* show all non-car - keep simple */ CAT='';} render(); }
+document.getElementById('q')?.addEventListener('input',render);
+document.getElementById('cat')?.addEventListener('change',e=>{CAT=e.target.value;render()});
+document.getElementById('prov')?.addEventListener('change',render);
+load();
+</script>
+<div class="modal" id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;overflow:auto"><div class="modal-content" id="modalContent" style="background:#fff;max-width:520px;margin:30px auto;padding:24px;border-radius:16px;color:#111"></div></div><script>
+const MY_WA="27735558440";
+const REMOTEPAY = {
+  paymentLinks: {
+    website: 'https://pay.simplyblu.co.za/website-1499',
+    photos: 'https://pay.simplyblu.co.za/photos-799',
+    whatsapp: 'https://pay.simplyblu.co.za/whatsapp-499',
+    google: 'https://pay.simplyblu.co.za/google-699',
+    hours: 'https://pay.simplyblu.co.za/hours-499',
+    featured: 'https://pay.simplyblu.co.za/featured-299',
+    domain: 'https://pay.simplyblu.co.za/domain-299',
+    web_hosting: 'https://pay.simplyblu.co.za/hosting-999',
+    email_hosting: 'https://pay.simplyblu.co.za/email-599',
+    logo: 'https://pay.simplyblu.co.za/logo-499',
+    care_plan: 'https://pay.simplyblu.co.za/careplan-499',
+    ad_top: 'https://pay.simplyblu.co.za/ad-top-999',
+    ad_sponsored: 'https://pay.simplyblu.co.za/ad-499',
+  },
+  whatomateWebhook: 'https://api.whatomate.com/webhook/YOUR-WHATOMATE-ID',
+  fallbackWA: MY_WA,
+};
+function openClaim(idx){ let x=ALL[idx]; if(x){ location.href="claim.html?id="+(x.id||""); return; }
+ let x=(typeof ALL!=='undefined'?ALL:(window.data||window.listings||[]))[idx]; if(!x){alert('Listing not found');return;}
+ let au=x.audit||{missing:[],score:0};
+ let services=[
+  {id:'website',label:'🌐 Professional Website (1 page)',price:1499,checked:!au.has_website},
+  {id:'photos',label:'📸 Professional Photos + Google Photos',price:799,checked:!au.has_photos},
+  {id:'whatsapp',label:'💬 WhatsApp Business Setup + Button',price:499,checked:!au.has_whatsapp},
+  {id:'google',label:'📍 Google Business Profile Fix',price:699,checked:!au.has_rating},
+  {id:'hours',label:'🕐 Opening Hours + Booking System',price:499,checked:!au.has_hours},
+  {id:'featured',label:'⭐ Featured on Ubernie - Top of Search (30 days)',price:299,checked:true},
+  {id:'domain',label:'🌐 Domain Registration - yourbusiness.co.za (1 year)',price:299,checked:false},
+  {id:'web_hosting',label:'☁️ Web Hosting - Fast + Secure + SSL (1 year)',price:999,checked:false},
+  {id:'email_hosting',label:'📧 Email Hosting - info@yourbusiness.co.za (5 mailboxes / year)',price:599,checked:false},
+  {id:'logo',label:'🎨 Logo + Business Card Design',price:499,checked:false},
+ ];
+ window._claimServices=services; window._claimBiz=x;
+ let html=`<h2>⭐ Claim: ${x.name}</h2><p style="color:#666">${x.address||''} - ${x.area||''}</p>
+ <div style="background:#ffebee;padding:12px;border-radius:10px"><b>🔍 YOUR FREE AUDIT: ${au.score}/100</b><br>Missing: ${(au.missing||[]).join(', ').replaceAll('_',' ')}<br><small>You are losing customers every day without these.</small></div>
+ <h3>👤 Your Details</h3>
+ <input id="ownerName" placeholder="Your Full Name *"><input id="ownerPhone" placeholder="Your WhatsApp Number *"><input id="ownerEmail" placeholder="Email">
+ <h3>🛒 Fix My Missing Services (Tick what you want)</h3>
+ ${services.map((s,i)=>`<div class="upsell"><label><input type="checkbox" ${s.checked?'checked':''} onchange="toggleService(${i},this.checked)"> ${s.label}</label><span class="price">R${s.price}</span></div>`).join('')}
+ <div style="text-align:right;font-weight:800;font-size:18px" id="total">Total: R<span id="totalVal">0</span> <small style="font-weight:400">(Claim itself is FREE)</small></div>
+ <button class="btn btn-green" onclick="submitClaim()">✅ CLAIM + Send Audit on WhatsApp</button>
+ <div style="text-align:center;margin:8px 0;font-size:13px;color:#666">OR Pay Instantly via RemotePay / SimplyBlu (Card) - No waiting</div>
+ <button class="btn btn-dark" onclick="payNowClaim()">💳 PAY NOW - Secure Card via SimplyBlu</button>
+ <div id="payLinks" style="display:none;margin-top:10px"></div>
+ <button class="btn btn-dark" onclick="closeModal()">Close</button>`;
+ let mc=document.getElementById('modalContent')||document.getElementById('auditModalBody');
+ if(!mc){alert('No modal container');return;}
+ mc.innerHTML=html; (document.getElementById('modal')||document.getElementById('auditModal')).style.display='block'; updateTotal();
+}
+function toggleService(i,checked){window._claimServices[i].checked=checked; updateTotal();}
+function updateTotal(){let t=window._claimServices.filter(s=>s.checked).reduce((a,s)=>a+s.price,0); document.getElementById('totalVal').textContent=t;}
+function submitClaim(){
+ let name=document.getElementById('ownerName').value; let phone=document.getElementById('ownerPhone').value;
+ if(!name||!phone){alert('Please enter your name + WhatsApp number'); return;}
+ let x=window._claimBiz; let chosen=window._claimServices.filter(s=>s.checked);
+ let total=chosen.reduce((a,s)=>a+s.price,0);
+ let msg=`🔥 UBernie CLAIM REQUEST\n\nBusiness: ${x.name}\nArea: ${x.area}\nAddress: ${x.address}\nAudit Score: ${x.audit.score}/100\nMissing: ${(x.audit.missing||[]).join(', ')}\n\nOwner: ${name}\nPhone: ${phone}\nEmail: ${document.getElementById('ownerEmail').value}\n\nServices Wanted:\n${chosen.map(s=>`- ${s.label} - R${s.price}`).join('\n')}\n\nTOTAL UPSELL: R${total}\nClaim Fee: FREE`;
+ window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent(msg)}`,'_blank');
+ alert('✅ Claim sent! We will WhatsApp you with your audit + quote.'); closeModal();
+}
+function closeModal(){let m=document.getElementById('modal')||document.getElementById('auditModal'); if(m)m.style.display='none';}
+function sendToWhatomate(payload){
+  try{fetch(REMOTEPAY.whatomateWebhook, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).catch(()=>{});}catch(e){}
+  // no WhatsApp here - payNowClaim shows pay links, submitClaim handles WhatsApp
+  if(false){ const msg = `🔥 UBernie CLAIM REQUEST\n\nBusiness: ${payload.business}\nArea: ${payload.area}\nAudit: ${payload.audit}/100\nOwner: ${payload.owner}\nPhone: ${payload.phone}\nServices: ${payload.services.map(s=>s.label+' R'+s.price).join(', ')}\nTotal: R${payload.total}`;
+  window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function payNowClaim(){
+  let name=document.getElementById('ownerName').value; let phone=document.getElementById('ownerPhone').value;
+  if(!name||!phone){alert('Please enter your name + WhatsApp number first'); return;}
+  let chosen=window._claimServices.filter(s=>s.checked);
+  if(chosen.length===0){alert('Tick at least 1 service to pay for'); return;}
+  sendToWhatomate({type:'claim_pay_attempt', business: window._claimBiz.name, area: window._claimBiz.area, audit: window._claimBiz.audit.score, owner: name, phone: phone, email: document.getElementById('ownerEmail').value, services: chosen, total: chosen.reduce((a,s)=>a+s.price,0)});
+  let html = chosen.map(s=>{
+    let link = REMOTEPAY.paymentLinks[s.id] || '#';
+    return `<a href="${link}" target="_blank" style="display:block;background:#f6f6f6;padding:10px;border-radius:10px;margin:6px 0;text-decoration:none;color:#111">💳 Pay ${s.label} - <b>R${s.price}</b> → Pay via SimplyBlu</a>`;
+  }).join('');
+  html += `<p style="font-size:12px;color:#666">After payment, Whatomate will auto-send your receipt + next steps on WhatsApp. Powered by RemotePay.</p>`;
+  document.getElementById('payLinks').innerHTML = html;
+  document.getElementById('payLinks').style.display='block';
+  alert('✅ Claim sent to Whatomate! Now tap a Pay link below to pay by card.');
+}
+</script>
+<section style="max-width:1100px;margin:0 auto;padding:20px">
+<h2 style="text-align:center">How Ubernie Works</h2>
+<div class="trust-grid">
+<div class="trust-card"><h3>1. Search</h3><p>Search plumber in Soweto, car wash in Johannesburg, or any of 30+ services.</p></div>
+<div class="trust-card"><h3>2. Compare</h3><p>Compare prices, hours, area and reviews. Verified = we called and confirmed the business.</p></div>
+<div class="trust-card"><h3>3. WhatsApp Direct</h3><p>Tap the green WhatsApp button to message the business directly. No middleman.</p></div>
+</div>
+<p style="text-align:center"><b>Verified on Ubernie means:</b> Real phone number, real area, real business. &nbsp;|&nbsp; <a class="wa-btn" href="https://wa.me/27735558440?text=Hi%20Ubernie%2C%20I%20want%20to%20list%20my%20business">WhatsApp Ubernie → List Your Business FREE</a></p>
+<p style="text-align:center;font-size:13px;color:#666">Claiming is FREE. <a href="claim.html">Claim Your Business →</a> | <a href="faq.html">FAQ</a></p>
+</section>
+</body></html>
+<script>/* UBERNIE_CLAIM_FIX */
+function openClaim(idx){ try{ var x=(typeof ALL!=='undefined'&&ALL[idx])?ALL[idx]:null; if(x&&x.id){ location.href='claim.html?id='+encodeURIComponent(x.id); return; } }catch(e){} location.href='claim.html'; }
+// Backup: if any Claim link is tapped, force it to claim.html even if ALL failed
+document.addEventListener('click', function(e){ var a=e.target.closest&&e.target.closest('a.claim'); if(a){ e.preventDefault(); var href=a.getAttribute('href')||''; if(href && href.indexOf('claim.html')>-1){ location.href=href; return; } try{ var card=a.closest('.card'); var h=card?card.querySelector('h3'):null; if(h){ location.href='claim.html?biz='+encodeURIComponent(h.textContent.trim()); return; } }catch(err){} location.href='claim.html'; } });
+</script>
+<style>
+/* WHATSAPP + TRUST + MOBILE NAV */
+.wa-btn{display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff!important;padding:10px 16px;border-radius:999px;font-weight:800;text-decoration:none;font-size:14px}
+.wa-btn:hover{background:#1fb857}
+.trust-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:24px 0}
+.trust-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:16px}
+@media(max-width:700px){.trust-grid{grid-template-columns:1fr} #mainNav{display:none} #mainNav.open{display:flex;flex-direction:column;position:absolute;top:60px;left:0;right:0;background:#111;padding:16px;z-index:99} #hamburger{display:block!important}}
+</style>
+<script>
+// WhatsApp lead button - use on any listing: whatsappLink(phone, businessName)
+function whatsappLink(phone, name){
+  var clean = String(phone||'').replace(/\D/g,'');
+  if(clean.startsWith('0')) clean = '27' + clean.slice(1);
+  var msg = encodeURIComponent('Hi ' + (name||'') + ', I found you on Ubernie.co.za and want to ask about your services.');
+  return 'https://wa.me/' + clean + '?text=' + msg;
+}
+function toggleMainNav(){ document.getElementById('mainNav').classList.toggle('open'); }
+</script>
