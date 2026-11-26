@@ -78,7 +78,7 @@ table{display:block!important;overflow-x:auto!important;white-space:nowrap}
   .categories{grid-template-columns:repeat(4,1fr)!important}
 }
 </style>
-<link rel="stylesheet" href="sidebar.css?v=6"></head><body><style>
+<link rel="stylesheet" href="sidebar.css?v=7"></head><body><style>
 #sidebar{position:fixed;left:0;top:60px;bottom:0;width:230px;overflow-y:auto;background:#f8f9fa;border-right:1px solid #ddd;padding:14px;z-index:50}
 #sidebar h4{color:#111;margin:0 0 10px;font-size:15px}
 #sidebar a{display:block;color:#111 !important;text-decoration:none;padding:7px 10px;border-radius:6px;font-size:14px;text-transform:capitalize}
@@ -92,7 +92,7 @@ table{display:block!important;overflow-x:auto!important;white-space:nowrap}
 <section class="hero"><div><h1 id="brandTitle">UBERNIE</h1><p>South Africa's trusted marketplace. 2,693 verified businesses across 9 provinces. Find it, compare it, book it - in 2 minutes.</p>
 <div class="search"><select id="cat"><option value="">All Services</option><option>accommodation</option><option>airbnb</option><option>automotive</option><option>beauty</option><option>cafe</option><option>car rental</option><option>car repair</option><option>car wash</option><option>day-care</option><option>dealership</option><option>education</option><option>electronics</option><option>fashion</option><option>fitness</option><option>food</option><option>grocery</option><option>hairdresser</option><option>health</option><option>hotel</option><option>liquor</option><option>mechanic</option><option>pets</option><option>pharmacy</option><option>property</option><option>restaurant</option><option>services</option><option>spare parts</option><option>supermarket</option><option>tyres</option></select><select id="prov"><option value="">All Provinces</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select><input id="q" placeholder="Search name or area..."><button class="btn" onclick="render()">Search</button></div>
 <div class="pills" id="pills"></div><p id="count" style="margin-top:12px"></p></div>
-<div class="hero-img"><div><b>4.8/5</b><br>Trusted by 50,000+ South African drivers<br><br><span>VERIFIED PARTNERS - NO HIDDEN FEES</span></div></div></section>
+<div class="hero-img"><div><b>4.8/5</b><br>Trusted by 50,000+ South African drivers<br><br><span><span class="verified-badge unverified"><span class="tick">?</span> Not Yet Verified</span> PARTNERS - NO HIDDEN FEES</span></div></div></section>
 <div style="padding:10px 5%;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="btnAll" onclick="setMode('all')">All Businesses (2,693)</button><button class="btn-outline" id="btnCars" onclick="setMode('cars')">Cars Only (1,092)</button><button class="btn-outline" id="btnLocal" onclick="setMode('local')">Food / Health / Local</button></div><div style="padding:14px 5%;background:#111;color:#fff;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><span>🍻 <b>DRINKINGWELL</b> - <b>SMARTDRINKER</b> Take Me Home service, like Goodfellas. Book a safe ride home.</span><a href="drinkingwell.html" style="background:#FFD600;color:#000;padding:8px 14px;border-radius:8px;font-weight:800">Book SmartDrinker →</a></div><div style="padding:18px 5%;background:#FFD600;color:#000;margin:16px 5%;border-radius:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><span><b>🔥 DEALS CORNER</b> - Vouchers & Discounts. Claim & save.</span><a href="deals.html" style="background:#000;color:#fff;padding:10px 16px;border-radius:8px;font-weight:800">View All Deals →</a></div><div class="bar"><h2>Popular in South Africa</h2><span id="total"></span></div>
 <div class="grid" id="list"></div>
 <section class="trust"><div><b>Why South Africans Trust Ubernie</b>Listings are being verified. Claimed businesses show verified phone + vouchers.</div><div><b>Transparent Pricing</b>Compare quotes upfront, no hidden fees.</div><div><b>Real Reviews</b>Honest ratings from real customers.</div><div><b>Revenue Audit Score</b>We audit business health for your peace of mind.</div></section>
@@ -123,7 +123,7 @@ function render(){
   const tot=document.getElementById('total'); if(tot) tot.textContent=filtered.length+' listed';
   list.innerHTML=filtered.slice(0,100).map(x=>{
     const rv=x.reviews||0; const r=x.rating||0; const s=x.audit?.score ?? 0;
-    return `<div class="card"><div class="card-body"><span style="background:#e6f7d4;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700">VERIFIED</span><h3>${x.name||''}</h3><div class="muted">${x.area||''}, ${x.province||''}</div><div class="stars">${rv>0?'⭐ '+r+' ('+rv+' reviews)':'⭐ New Listing - Be first to review'}</div><div class="row"><div><div class="muted">${x.phone||'Claim to add phone & verify'}</div><div class="muted">${x.category||''} - ${x.phone?'Verified phone':'Claim to add phone'}</div><a class="wa" href="${waLink(x)}">WhatsApp</a> <a class="wa" href="business.html?id=${x.id||''}">View →</a></div><div class="score"><small>Revenue Audit</small><b>${s}</b><a class="claim" href="javascript:void(0)" onclick="openClaim(ALL.indexOf(x))">Claim This Listing - FREE</a></div></div></div></div>`;
+    return `<div class="card"><div class="card-body"><span style="background:#e6f7d4;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700"><span class="verified-badge unverified"><span class="tick">?</span> Not Yet Verified</span></span><h3>${x.name||''}</h3><div class="muted">${x.area||''}, ${x.province||''}</div><div class="stars">${rv>0?'⭐ '+r+' ('+rv+' reviews)':'⭐ New Listing - Be first to review'}</div><div class="row"><div><div class="muted">${x.phone||'Claim to add phone & verify'}</div><div class="muted">${x.category||''} - ${x.phone?'Verified phone':'Claim to add phone'}</div><a class="wa" href="${waLink(x)}">WhatsApp</a> <a class="wa" href="business.html?id=${x.id||''}">View →</a></div><div class="score"><small>Revenue Audit</small><b>${s}</b><a class="claim" href="javascript:void(0)" onclick="openClaim(ALL.indexOf(x))">Claim This Listing - FREE</a></div></div></div></div>`;
   }).join('')||'<p>No results</p>';
 }
 function setMode(m){ CAT = m==='cars' ? 'mechanic' : (m==='local' ? '' : ''); if(m==='local'){/* show all non-car - keep simple */ CAT='';} render(); }
@@ -252,7 +252,7 @@ body.sidebar-closed div[style*="margin-left:"]{margin-left:0!important}
 #sidebarOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90}
 #sidebarOverlay.show{display:block}
 </style>
-<script src="sidebar.js?v=6"></script></body></html>
+<script src="sidebar.js?v=7"></script></body></html>
 <script>/* UBERNIE_CLAIM_FIX */
 function openClaim(idx){ try{ var x=(typeof ALL!=='undefined'&&ALL[idx])?ALL[idx]:null; if(x&&x.id){ location.href='claim.html?id='+encodeURIComponent(x.id); return; } }catch(e){} location.href='claim.html'; }
 // Backup: if any Claim link is tapped, force it to claim.html even if ALL failed

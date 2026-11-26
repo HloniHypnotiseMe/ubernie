@@ -17,3 +17,15 @@ body.sidebar-open #menuBtn{left:270px}
   #sidebarOverlay{display:none!important}
   body.sidebar-open #sidebarOverlay{display:block!important;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90}
 }
+
+/* VERIFIED BADGE - Ubernie */
+.verified-badge{display:inline-flex;align-items:center;gap:5px;background:#0F9D58;color:#fff;font-size:11px;font-weight:800;letter-spacing:.3px;padding:3px 8px 3px 4px;border-radius:999px;text-transform:uppercase;line-height:1}
+.verified-badge .tick{background:#fff;color:#0F9D58;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900}
+.verified-badge.unverified{background:#eee;color:#666}
+.verified-badge.unverified .tick{background:#ccc;color:#fff}
+
+/* VERIFIED BADGE - Ubernie */
+.verified-badge{display:inline-flex;align-items:center;gap:5px;background:#0F9D58;color:#fff;font-size:11px;font-weight:800;letter-spacing:.3px;padding:3px 8px 3px 4px;border-radius:999px;text-transform:uppercase;line-height:1}
+.verified-badge .tick{background:#fff;color:#0F9D58;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900}
+.verified-badge.unverified{background:#eee;color:#666}
+.verified-badge.unverified .tick{background:#ccc;color:#fff}
