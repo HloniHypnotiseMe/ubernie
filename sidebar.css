@@ -1,15 +1,19 @@
-/* GPT-style FLEX - sidebar BESIDE page, never ON TOP, never squeezes broken */
-body{display:flex!important;align-items:flex-start!important}
-#sidebar{position:sticky!important;top:60px;left:0;flex:0 0 260px;width:260px;max-width:85vw;height:calc(100vh - 60px);background:#fff!important;border-right:1px solid #ddd;padding:14px;overflow-y:auto;transition:margin-left .25s ease, flex-basis .25s ease;z-index:100}
-#sidebar.closed{margin-left:-260px!important;flex-basis:0!important;overflow:hidden;padding:0;border:0}
-#pageWrap{flex:1;min-width:0;transition:all .25s ease}
+/* PUSH drawer - page moves RIGHT, never LEFT, never covers sidebar */
+body{margin:0}
+#sidebar{position:fixed!important;left:0;top:60px;bottom:0;width:260px;max-width:85vw;background:#fff!important;border-right:1px solid #ddd;padding:14px;z-index:100;overflow-y:auto;transform:translateX(-110%);transition:transform .25s ease}
+body.sidebar-open #sidebar{transform:translateX(0)}
 #sidebarClose{display:block!important;text-align:right;font-size:22px;cursor:pointer;background:none;border:0;width:100%;color:#111}
 #sidebarOverlay{display:none!important}
-#menuBtn{position:fixed!important;top:70px;left:10px;z-index:101}
+/* THE PAGE - this is what moves, RIGHT only */
+#pageWrap{margin-left:0;transition:margin-left .25s ease;min-width:0}
+body.sidebar-open #pageWrap{margin-left:260px}
+#menuBtn{position:fixed!important;top:70px;left:10px;z-index:101;transition:left .25s ease}
 body.sidebar-open #menuBtn{left:270px}
 @media (max-width:900px){
-  #sidebar{position:fixed!important;top:60px;bottom:0;height:auto;flex:none}
-  #sidebar.closed{margin-left:0!important;transform:translateX(-110%);flex-basis:260px;padding:14px;border-right:1px solid #ddd}
-  #pageWrap{flex:1}
+  /* Phone: no room to push, so overlay + dark backdrop */
+  body.sidebar-open #pageWrap{margin-left:0}
   body.sidebar-open #menuBtn{left:10px}
+  #sidebar{box-shadow:0 0 30px rgba(0,0,0,.4)}
+  #sidebarOverlay{display:none!important}
+  body.sidebar-open #sidebarOverlay{display:block!important;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90}
 }
