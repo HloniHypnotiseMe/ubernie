@@ -84,7 +84,7 @@ function scoreFor(x){if(x.audit&&x.audit.score)return x.audit.score; if(x.revenu
 function icon(c){return c=='mechanic'?'MECH':c=='dealership'?'CAR':c=='tyres'?'TYRE':c=='car wash'?'WASH':c=='spare parts'?'PARTS':'RENT'}
 function waLink(x){let msg=encodeURIComponent('Hi, I found '+x.name+' on Ubernie.co.za');return 'https://wa.me/27735558440?text='+msg}
 async function load(){try{ALL=await (await fetch('listings.json')).json();
-    try{ const live = await (await fetch('http://localhost:3000/api/businesses/spazas')).json();
+    try{ const live = await (await fetch('/api/businesses/spazas')).json();
       if(Array.isArray(live) && live.length){
         const mapped = live.map(s=>({id:'live-'+s.id, name:s.name, phone:s.phone, area:s.area, address:s.address||'', category:'spaza shops', province:'Gauteng', rating:4.6, reviews:0}));
         // Add live spazas that aren't already in listings.json (by phone)
